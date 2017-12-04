@@ -1,3 +1,4 @@
+
 Demo1: LSTM-Autoencoder using Keras
 ----------------
 
@@ -12,4 +13,9 @@ Target: Implement a LSTM-based autoencoder for reconstruction of time-series dat
 
 >- **Decoder input**: identical RepeatVectors
 
->- **Decoder output**: expected prediction with the same shape as the autoencoder input
+>- **Decoder output**: expected prediction with the same shape as the autoencoder input, but the order of the sequence is inverted.
+
+
+The architecture of the LSTM-Autoencoder(RepeatVector) is shown below:
+
+![LSTM-Autoencoder](https://github.com/binli826/MasterThesis/blob/master/Figures/LSTM-Autoencoder%28RepeatVector%29.png)
