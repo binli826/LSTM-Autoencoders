@@ -18,4 +18,6 @@ Target: Implement a LSTM-based autoencoder for reconstruction of time-series dat
 
 The architecture of the LSTM-Autoencoder(RepeatVector) is shown below:
 
+(While we consider timesteps=3 in the example, we need 3 RepeatVectors for the 3 inputs of decoder.)
+
 ![LSTM-Autoencoder](https://github.com/binli826/MasterThesis/blob/master/Figures/LSTM-Autoencoder%28RepeatVector%29.png)
