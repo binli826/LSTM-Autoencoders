@@ -3,9 +3,9 @@ Demo1: LSTM-Autoencoder using Keras
 ----------------
 
 Target: Implement a LSTM-based autoencoder for reconstruction of time-series data.         
-> LSTMs network take input with the form [samples, timesteps, input_dim]
+> LSTMs input should in the form: [samples, timesteps, input_dim]
 
-> - **Encoder input**: batched of samples, each batch considering 'timesteps' samples from the time series, each sample has 'input_dim' dimensions
+> - **Encoder input**: batches of samples, each batch considering 'timesteps' samples from the time series, each sample has 'input_dim' dimensions
 
 > - **Encoder output**: a single static vector that represent the input information (vector length = #hiden layer neurons)
 
