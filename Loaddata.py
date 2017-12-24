@@ -3,7 +3,7 @@
 
 # # Load Dataset
 
-# In[1]:
+# In[9]:
 
 
 import pandas as pd
@@ -51,19 +51,22 @@ class Loaddata(object):
             index = [8*t for t in range(sub_power.shape[0]//8 +1)]
             sub_power = sub_power[index].reset_index(drop=True)  # shape(4319,)
             #Scaling
-            sub_power = sub_power.values.reshape(-1, 1)
+            sub_power = sub_power.reshape(-1, 1)
             scaler = MinMaxScaler()
             scaler.fit(sub_power)
             sub_power = scaler.transform(sub_power) 
             
-            
-            # according to the paper, we set L=84 as a window that represents a week
-            #weeks = [np.arange(84*w,84*w+84) for w in range(sub_power.shape[0]//84)]
-            #array = []
-            #for week in weeks:
-            #    array.append(sub_power[week].reset_index(drop=True))
-              
             return sub_power
+        
+        elif self.dataset == "tek17":
+            tek17 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK17.txt",names=["tek17"])
+            # downsample the dataset by 3 
+            tek17 = pd.Series(tek17[:]["tek17"])
+            index = [3*t for t in range(tek17.shape[0]//3)]
+            sub_tek17 = tek17[index].reset_index(drop=True)
+            sub_tek17 = sub_tek17[:1500]
+            
+            return sub_tek17
             
         else:
             print("Wrong dataset name")
