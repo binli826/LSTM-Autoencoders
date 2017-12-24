@@ -3,7 +3,7 @@
 
 # # Load Dataset
 
-# In[9]:
+# In[1]:
 
 
 import pandas as pd
@@ -58,15 +58,29 @@ class Loaddata(object):
             
             return sub_power
         
-        elif self.dataset == "tek17":
-            tek17 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK17.txt",names=["tek17"])
+        elif self.dataset == "space_shuttle":
+            tek17 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK17.txt",header=None)
+            tek16 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK16.txt",header=None)
+            tek14 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK14.txt",header=None)
+            tek = pd.concat([tek14,tek16,tek17],axis=0).reset_index(drop=True)
             # downsample the dataset by 3 
-            tek17 = pd.Series(tek17[:]["tek17"])
-            index = [3*t for t in range(tek17.shape[0]//3)]
-            sub_tek17 = tek17[index].reset_index(drop=True)
-            sub_tek17 = sub_tek17[:1500]
-            
-            return sub_tek17
+            sub_tek = pd.Series(tek[0])
+            index = [3*t for t in range(tek.shape[0]//3)]
+            sub_tek = sub_tek[index].reset_index(drop=True)
+            #Scaling
+            sub_tek = sub_tek.reshape(-1, 1)
+            scaler = MinMaxScaler()
+            scaler.fit(sub_tek)
+            sub_tek = scaler.transform(sub_tek) 
+            #Applying sliding window, window length 1500/3=500, step_size 500/3= 166
+            STEP_SIZE = 500//3 # downsampled by 3
+            WINDOW_LENGTH = 1500//3   # downsampled by 3
+            t = 1
+            sequence = sub_tek[:WINDOW_LENGTH]
+            while t*STEP_SIZE+WINDOW_LENGTH <=sub_tek.size:
+                sequence = np.concatenate((sequence,sub_tek[t*STEP_SIZE:t*STEP_SIZE+WINDOW_LENGTH]))
+                t = t+1
+            return sequence
             
         else:
             print("Wrong dataset name")
