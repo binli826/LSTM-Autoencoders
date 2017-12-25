@@ -3,9 +3,10 @@
 
 # # Load Dataset
 
-# In[1]:
+# In[5]:
 
 
+get_ipython().magic('matplotlib inline')
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -81,6 +82,20 @@ class Loaddata(object):
                 sequence = np.concatenate((sequence,sub_tek[t*STEP_SIZE:t*STEP_SIZE+WINDOW_LENGTH]))
                 t = t+1
             return sequence
+        
+        elif self.dataset == "ecg":
+            # use the first channel of the qtdb/sel102 dataset
+            ecg = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/qtdbsel102.txt",header=None,usecols=[1],sep="\t")
+            ecg = pd.Series(ecg[1])
+            
+            #Scaling
+            ecg = ecg.reshape(-1, 1)
+            scaler = MinMaxScaler()
+            scaler.fit(ecg)
+            ecg = scaler.transform(ecg) 
+            
+            return ecg
+            
             
         else:
             print("Wrong dataset name")
