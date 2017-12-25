@@ -3,7 +3,7 @@
 
 # # Load Dataset
 
-# In[5]:
+# In[1]:
 
 
 get_ipython().magic('matplotlib inline')
@@ -46,6 +46,7 @@ class Loaddata(object):
             return data
         
         elif self.dataset == "power_demand":
+            
             power = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data.txt",names=["power_demand"])
             # downsample the dataset by 8 to obtain non-overlapping sequences with L=84 such that each window corresponds to one week
             sub_power = pd.Series(power[490:].reset_index(drop=True)["power_demand"])
@@ -57,7 +58,27 @@ class Loaddata(object):
             scaler.fit(sub_power)
             sub_power = scaler.transform(sub_power) 
             
-            return sub_power
+            # split the normal dataset into training_normal(15), validation_1(9), validation_2(9), test_normal(12), 
+            # split the anomalous dataset into validation_anomaly(3), test_anomaly(3)
+            # here the anomalous data are manually labeled
+            sub_power = np.array([sub_power[t][0] for t in range(sub_power.shape[0])])
+            sub_power_list = [sub_power[t*84:(t+1)*84] for t in range(51)]
+            
+            anomalous_indices = [11,12,16,17,19,50]
+            normal_indices = list(set(range(51))-set(anomalous_indices))
+            dataset_normal = [sub_power_list[i] for i in normal_indices]
+            dataset_anomalous = [sub_power_list[j] for j in anomalous_indices]
+            
+            training_normal = np.concatenate(dataset_normal[:15])
+            validation_1 = np.concatenate(dataset_normal[15:24])
+            validation_2 = np.concatenate(dataset_normal[24:33])
+            test_normal = np.concatenate(dataset_normal[33:45])
+
+            validation_anomaly = np.concatenate(dataset_anomalous[:3])
+            test_anomaly = np.concatenate(dataset_anomalous[3:])
+            
+            
+            return [training_normal, validation_1, validation_2, test_normal, validation_anomaly, test_anomaly]
         
         elif self.dataset == "space_shuttle":
             tek17 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK17.txt",header=None)
@@ -81,6 +102,7 @@ class Loaddata(object):
             while t*STEP_SIZE+WINDOW_LENGTH <=sub_tek.size:
                 sequence = np.concatenate((sequence,sub_tek[t*STEP_SIZE:t*STEP_SIZE+WINDOW_LENGTH]))
                 t = t+1
+            #return a timeseries after appling sliding window
             return sequence
         
         elif self.dataset == "ecg":
@@ -100,4 +122,31 @@ class Loaddata(object):
         else:
             print("Wrong dataset name")
             return 
+
+
+# In[19]:
+
+
+power = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data.txt",names=["power_demand"])
+# downsample the dataset by 8 to obtain non-overlapping sequences with L=84 such that each window corresponds to one week
+sub_power = pd.Series(power[490:].reset_index(drop=True)["power_demand"])
+index = [8*t for t in range(sub_power.shape[0]//8 +1)]
+sub_power = sub_power[index].reset_index(drop=True)  # shape(4319,)
+#Scaling
+sub_power = sub_power.reshape(-1, 1)
+scaler = MinMaxScaler()
+scaler.fit(sub_power)
+sub_power = scaler.transform(sub_power)
+
+
+# In[20]:
+
+
+sub_power = np.array([sub_power[t][0] for t in range(sub_power.shape[0])])
+
+
+# In[21]:
+
+
+sub_power.shape
 
