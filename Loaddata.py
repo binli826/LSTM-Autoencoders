@@ -3,7 +3,7 @@
 
 # # Load Dataset
 
-# In[1]:
+# In[2]:
 
 
 get_ipython().magic('matplotlib inline')
@@ -73,12 +73,13 @@ class Loaddata(object):
             validation_1 = np.concatenate(dataset_normal[15:24])
             validation_2 = np.concatenate(dataset_normal[24:33])
             test_normal = np.concatenate(dataset_normal[33:45])
-
+            whole_normal = np.concatenate((training_normal, validation_1, validation_2, test_normal))
+            
             validation_anomaly = np.concatenate(dataset_anomalous[:3])
             test_anomaly = np.concatenate(dataset_anomalous[3:])
+            whole_anormaly = np.concatenate((validation_anomaly,test_anomaly))
             
-            
-            return [training_normal, validation_1, validation_2, test_normal, validation_anomaly, test_anomaly]
+            return [training_normal, validation_1, validation_2, test_normal, validation_anomaly, test_anomaly,whole_normal,whole_anormaly]
         
         elif self.dataset == "space_shuttle":
             tek17 = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/TEK17.txt",header=None)
@@ -122,31 +123,4 @@ class Loaddata(object):
         else:
             print("Wrong dataset name")
             return 
-
-
-# In[19]:
-
-
-power = pd.read_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data.txt",names=["power_demand"])
-# downsample the dataset by 8 to obtain non-overlapping sequences with L=84 such that each window corresponds to one week
-sub_power = pd.Series(power[490:].reset_index(drop=True)["power_demand"])
-index = [8*t for t in range(sub_power.shape[0]//8 +1)]
-sub_power = sub_power[index].reset_index(drop=True)  # shape(4319,)
-#Scaling
-sub_power = sub_power.reshape(-1, 1)
-scaler = MinMaxScaler()
-scaler.fit(sub_power)
-sub_power = scaler.transform(sub_power)
-
-
-# In[20]:
-
-
-sub_power = np.array([sub_power[t][0] for t in range(sub_power.shape[0])])
-
-
-# In[21]:
-
-
-sub_power.shape
 
