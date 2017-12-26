@@ -1,2 +1,2 @@
-model_checkpoint_path: "C:/Users/Bin/Desktop/Thesis/code/tmp/EncDecAD_power_training_500epochs.ckpt"
-all_model_checkpoint_paths: "C:/Users/Bin/Desktop/Thesis/code/tmp/EncDecAD_power_training_500epochs.ckpt"
+model_checkpoint_path: "C:/Users/Bin/Desktop/Thesis/code/tmp/EncDecAD_space_training_100epochs_2unit.ckpt"
+all_model_checkpoint_paths: "C:/Users/Bin/Desktop/Thesis/code/tmp/EncDecAD_space_training_100epochs_2unit.ckpt"

@@ -61,8 +61,8 @@ class Loaddata(object):
             # split the normal dataset into training_normal(15), validation_1(9), validation_2(9), test_normal(12), 
             # split the anomalous dataset into validation_anomaly(3), test_anomaly(3)
             # here the anomalous data are manually labeled
-            sub_power = np.array([sub_power[t][0] for t in range(sub_power.shape[0])])
-            sub_power_list = [sub_power[t*84:(t+1)*84] for t in range(51)]
+            sub_power_ = np.array([sub_power[t][0] for t in range(sub_power.shape[0])])
+            sub_power_list = [sub_power_[t*84:(t+1)*84] for t in range(51)]
             
             anomalous_indices = [11,12,16,17,19,50]
             normal_indices = list(set(range(51))-set(anomalous_indices))
