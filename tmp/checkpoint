@@ -1,2 +1,0 @@
-model_checkpoint_path: "C:/Users/Bin/Desktop/Thesis/code/tmp/EncDecAD_power_demand_200epochs_9unit_batchsize3.ckpt"
-all_model_checkpoint_paths: "C:/Users/Bin/Desktop/Thesis/code/tmp/EncDecAD_power_demand_200epochs_9unit_batchsize3.ckpt"
