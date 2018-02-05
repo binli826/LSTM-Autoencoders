@@ -56,7 +56,7 @@ class Parameter_Helper(object):
             
 #            output_ = tf.transpose(tf.stack(dec_outputs), [1, 0, 2])
 #            input_ = graph.get_tensor_by_name("decoder_1/input_:0")       
-            output_ = graph.get_tensor_by_name("output_:0")
+            output_ = graph.get_tensor_by_name("decoder/output_:0")
             
             print("Model restored.") 
             print('Initialized')
