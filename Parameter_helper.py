@@ -32,30 +32,17 @@ class Parameter_Helper(object):
         
         with tf.Session() as sess:
             
-
-#            init = tf.global_variables_initializer()
-#            sess.run(init)
-#            saver = tf.train.Saver()
-#            saver.restore(sess,self.conf.modelpath) # reload trained parameters
             saver = tf.train.import_meta_graph(self.conf.modelmeta) # load trained gragh, but without the trained parameters
             saver.restore(sess,tf.train.latest_checkpoint(self.conf.modelpath_root))
             graph = tf.get_default_graph()
-            
-#            with tf.variable_scope("decoder_1",reuse=tf.AUTO_REUSE):
-#                dec_bias_ = tf.get_variable("dec_bias_",[self.conf.elem_num])
-#                dec_weight_ = tf.get_variable("dec_weight_",[self.conf.hidden_num,self.conf.elem_num])
 
 #            names = []
 #            for i in tf.all_variables():
 #                names.append(graph.get_tensor_by_name(i.name).name)
-#            p_input = tf.placeholder(tf.float32, shape=(self.conf.batch_num, self.conf.step_num, self.conf.elem_num))
             p_input = graph.get_tensor_by_name("p_input:0")
             p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)] 
             
-            input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])
-            
-#            output_ = tf.transpose(tf.stack(dec_outputs), [1, 0, 2])
-#            input_ = graph.get_tensor_by_name("decoder_1/input_:0")       
+            input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
             output_ = graph.get_tensor_by_name("decoder/output_:0")
             
             print("Model restored.") 
