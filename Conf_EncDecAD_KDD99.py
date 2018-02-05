@@ -19,7 +19,7 @@ class Conf_EncDecAD_KDD99(object):
         self.step_num = 20
         self.input_root = input_root
         self.iteration = 100
-        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/"
+        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/52test/"
         self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
         self.modelmeta = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt.meta"
         self.decode_without_input =  False
@@ -41,10 +41,8 @@ class Conf_EncDecAD_KDD99(object):
 
 
         # input placeholder
-        self.p_input = tf.placeholder(tf.float32, shape=(self.batch_num, self.step_num, self.elem_num))
+        self.p_input = tf.placeholder(tf.float32, shape=(self.batch_num, self.step_num, self.elem_num),name="p_input")
         self.p_inputs = [tf.squeeze(t, [1]) for t in tf.split(self.p_input, self.step_num, 1)]
-
-
         self.ae = EncDecAD(self.hidden_num, self.p_inputs,is_training = True, decode_without_input=False)
 
 

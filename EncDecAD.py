@@ -59,6 +59,6 @@ class EncDecAD(object):
             self.input_ = tf.transpose(tf.stack(inputs), [1, 0, 2],name="input_")
             self.loss = tf.reduce_mean(tf.square(self.input_ - self.output_))
             
-            if is_training:
-                self.train = tf.train.AdamOptimizer().minimize(self.loss)
+#            if is_training:
+            self.train = tf.train.AdamOptimizer().minimize(self.loss)
                       

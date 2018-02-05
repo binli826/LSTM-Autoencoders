@@ -19,30 +19,49 @@ class Parameter_Helper(object):
         
         
     def mu_and_sigma(self):
+#        graph = tf.get_default_graph()
+#       
+#        p_input = graph.get_tensor_by_name("p_input:0")
+#        p_inputs =  [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)]
+#        p_input = tf.placeholder(tf.float32, shape=(self.conf.batch_num, self.conf.step_num, self.conf.elem_num),name="p_input")
+#        p_inputs = [tf.squeeze(t, [1]) for t in tf.split(self.conf.p_input, self.conf.step_num, 1)]
+#        hidden_num = self.conf.hidden_num
+#        ae = EncDecAD(hidden_num, p_inputs,  True, False)
+#        train_ = tf.train.AdamOptimizer().minimize(ae.loss)
+#        saver = tf.train.Saver()
         
-#        ae = EncDecAD(self.conf.hidden_num, self.conf.p_inputs,self.is_training, self.conf.decode_without_input )
-#        ae = self.conf.ae
-      
         with tf.Session() as sess:
-#            tf.reset_default_graph()
+            
+
+#            init = tf.global_variables_initializer()
+#            sess.run(init)
 #            saver = tf.train.Saver()
-            
+#            saver.restore(sess,self.conf.modelpath) # reload trained parameters
             saver = tf.train.import_meta_graph(self.conf.modelmeta) # load trained gragh, but without the trained parameters
-            saver.restore(sess,self.conf.modelpath) # reload trained parameters
+            saver.restore(sess,tf.train.latest_checkpoint(self.conf.modelpath_root))
             graph = tf.get_default_graph()
-
-
-            _input_ = graph.get_tensor_by_name("input_:0")
-            _output_ = graph.get_tensor_by_name("output_:0")
             
+#            with tf.variable_scope("decoder_1",reuse=tf.AUTO_REUSE):
+#                dec_bias_ = tf.get_variable("dec_bias_",[self.conf.elem_num])
+#                dec_weight_ = tf.get_variable("dec_weight_",[self.conf.hidden_num,self.conf.elem_num])
+
+#            names = []
+#            for i in tf.all_variables():
+#                names.append(graph.get_tensor_by_name(i.name).name)
+#            p_input = tf.placeholder(tf.float32, shape=(self.conf.batch_num, self.conf.step_num, self.conf.elem_num))
+            p_input = graph.get_tensor_by_name("p_input:0")
+            p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)] 
+            
+            input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])
+            
+#            output_ = tf.transpose(tf.stack(dec_outputs), [1, 0, 2])
+#            input_ = graph.get_tensor_by_name("decoder_1/input_:0")       
+            output_ = graph.get_tensor_by_name("output_:0")
             
             print("Model restored.") 
             print('Initialized')
             
-            
-#            init = tf.global_variables_initializer()
-#            sess.run(init)
-        
+              
             err_vec_list = []
             for _ in range(len(self.conf.vn1_list)//self.conf.batch_num):
                 data =[]
@@ -50,19 +69,18 @@ class Parameter_Helper(object):
                     ind = np.random.randint(0,len(self.conf.vn1_list)-1)
                     sub = self.conf.vn1_list[ind]
                     data.append(sub)
-                data = np.array(data)
-#                (input_, output_) = sess.run([ae.input_, ae.output_], {self.conf.p_input: data})
-                
-                (input_, output_) = sess.run([_input_, _output_], {self.conf.p_input: data})
-                err_vec_list.append(abs(input_ - output_))
+                data = np.array(data,dtype=float)
+                data = data.reshape((20,20,34))
+                (_input_, _output_) = sess.run([input_, output_], {p_input: data})
+                err_vec_list.append(abs(_input_ - _output_))
             err_vec = np.mean(np.array(err_vec_list),axis=0).reshape(self.conf.batch_num,-1)
             mu = np.mean(err_vec,axis=0)
             sigma = np.cov(err_vec.T)
             print("Got parameters mu and sigma.")
-            
+            print(mu.ravel())
             return mu, sigma
         
-
+''' 
         
     def get_threshold(self,mu,sigma):
         
@@ -143,4 +161,6 @@ class Parameter_Helper(object):
         
         
         return threshold
+  '''
+  
   
