@@ -17,7 +17,9 @@ class EncDecAD(object):
         self._dec_cell = tf.nn.rnn_cell.LSTMCell(hidden_num, use_peepholes=True)
         
         self.is_training = is_training
-
+        
+        self.input_ = tf.transpose(tf.stack(inputs), [1, 0, 2],name="input_")
+        
         with tf.variable_scope('encoder',reuse = tf.AUTO_REUSE):
             (self.z_codes, self.enc_state) = tf.contrib.rnn.static_rnn(self._enc_cell, inputs, dtype=tf.float32)
 
@@ -45,8 +47,8 @@ class EncDecAD(object):
             self.output_ = tf.transpose(tf.stack(dec_outputs), [1, 0, 2],name="output_")
                 
         
-        self.input_ = tf.transpose(tf.stack(inputs), [1, 0, 2],name="input_")
-        self.loss = tf.reduce_mean(tf.square(self.input_ - self.output_),name="loss")
+        
+            self.loss = tf.reduce_mean(tf.square(self.input_ - self.output_),name="loss")
         
        
         def check_is_train(ph):

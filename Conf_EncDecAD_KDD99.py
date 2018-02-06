@@ -18,7 +18,7 @@ class Conf_EncDecAD_KDD99(object):
         self.hidden_num = 100
         self.step_num = 20
         self.input_root = input_root
-        self.iteration = 100
+        self.iteration = 5
         self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/52test/"
         self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
         self.modelmeta = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt.meta"

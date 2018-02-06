@@ -15,8 +15,7 @@ class Parameter_Helper(object):
     
     def __init__(self, conf):
         self.conf = conf
-        self.is_training = False
-        
+       
         
     def mu_and_sigma(self):
         
