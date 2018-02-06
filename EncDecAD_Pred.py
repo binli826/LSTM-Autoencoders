@@ -9,7 +9,6 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import time
 import sys
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from Conf_Prediction_KDD99 import Conf_Prediction_KDD99

@@ -8,7 +8,7 @@ import time
 from kafka import KafkaProducer
 import pandas as pd
 
-filename = "C:/Users/Bin/Documents/Datasets/KDD99/6_subsets_win/training_normal.csv"
+filename = "C:/Users/Bin/Documents/Datasets/KDD99/6_subsets_win/test.csv"
 
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # column names, is_guest_login & dis_host_login & logged_in & land & flag & service & protocol_type

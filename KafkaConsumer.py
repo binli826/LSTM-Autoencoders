@@ -46,7 +46,7 @@ def block_generator2queue(q,stop_event):
             if len(block)==batch_num*step_num:
                 df = pd.DataFrame(np.array(block))
                 q.put(df)
-                print("Wrote a block to queue.")
+#                print("Wrote a block to queue.\n")
                 block.clear()
                 
 def read_block_from_queue(q,stop_event):
@@ -55,7 +55,7 @@ def read_block_from_queue(q,stop_event):
     while not stop_event.is_set():
         if q.empty() == False:
             b = q.get()
-            print("read a block from queue")
+#            print("Read a block from queue.\n")
             if dataframe.size == 0:
                 dataframe = b
             else:
