@@ -15,7 +15,7 @@ class EncDecAD_Test(object):
     def __init__(self, conf):
         self.conf = conf
     
-    def test_encdecad(self,mu,sigma,threshold,beta = 0.5):
+    def test_encdecad(self,beta = 0.5):
         
         with tf.Session() as sess:
             normal_score = []
@@ -24,7 +24,7 @@ class EncDecAD_Test(object):
             a_in = []
             a_out = []
             
-            saver = tf.train.import_meta_graph(self.conf.modelmeta) # load trained gragh, but without the trained parameters
+            saver = tf.train.import_meta_graph(self.conf.modelmeta_p) # load trained gragh, but without the trained parameters
             saver.restore(sess,tf.train.latest_checkpoint(self.conf.modelpath_root))
             graph = tf.get_default_graph()
             
@@ -34,7 +34,14 @@ class EncDecAD_Test(object):
 
             input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
             output_ = graph.get_tensor_by_name("decoder/output_:0")
-
+            
+            tensor_mu = graph.get_tensor_by_name("mu:0")
+            tensor_sigma = graph.get_tensor_by_name("sigma:0")
+            tensor_threshold = graph.get_tensor_by_name("threshold:0")
+            
+            mu = sess.run(tensor_mu)
+            sigma = sess.run(tensor_sigma)
+            threshold = sess.run(tensor_threshold)
 
             for count in range(len(self.conf.tn_list)//self.conf.batch_num):
                 normal_sub = np.array(self.conf.tn_list[count*self.conf.batch_num:(count+1)*self.conf.batch_num]) 

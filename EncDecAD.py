@@ -52,12 +52,8 @@ class EncDecAD(object):
         
        
         def check_is_train(ph):
-            def t_ (): 
-                print("is training")
-                return tf.train.AdamOptimizer().minimize(self.loss)
-            def f_ (): 
-                print("not training")
-                return tf.train.AdamOptimizer(1/math.inf).minimize(self.loss)
+            def t_ (): return tf.train.AdamOptimizer().minimize(self.loss)
+            def f_ (): return tf.train.AdamOptimizer(1/math.inf).minimize(self.loss)
             is_train = tf.cond(is_training, t_, f_)
             return is_train
         

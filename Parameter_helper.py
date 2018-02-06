@@ -131,7 +131,12 @@ class Parameter_Helper(object):
             pd.Series(abnormal_score).plot()
             bar = threshold*np.ones(len(normal_score)+len(abnormal_score))
             pd.Series(bar).plot(label="threshold")
-
+            c_mu = tf.constant(mu,dtype=tf.float32,name = "mu")
+            c_sigma = tf.constant(sigma,dtype=tf.float32,name = "sigma")
+            c_threshold = tf.constant(threshold,dtype=tf.float32,name = "threshold")
+            
+            save_path = saver.save(sess, self.conf.modelpath_p)
+            print("Model saved accompany with parameters and threshold in file: %s" % save_path)
         return threshold
 
   
