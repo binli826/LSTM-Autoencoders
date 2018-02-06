@@ -5,7 +5,7 @@ Created on Fri Jan 26 15:17:47 2018
 @author: Bin
 """
 import tensorflow as tf
-
+import math
 class EncDecAD(object):
 
     def __init__(self, hidden_num, inputs, is_training, optimizer=None, reverse=True, decode_without_input=False):
@@ -15,7 +15,8 @@ class EncDecAD(object):
         
         self._enc_cell = tf.nn.rnn_cell.LSTMCell(hidden_num, use_peepholes=True)
         self._dec_cell = tf.nn.rnn_cell.LSTMCell(hidden_num, use_peepholes=True)
-
+        
+        self.is_training = is_training
 
         with tf.variable_scope('encoder',reuse = tf.AUTO_REUSE):
             (self.z_codes, self.enc_state) = tf.contrib.rnn.static_rnn(self._enc_cell, inputs, dtype=tf.float32)
@@ -47,6 +48,23 @@ class EncDecAD(object):
         self.input_ = tf.transpose(tf.stack(inputs), [1, 0, 2],name="input_")
         self.loss = tf.reduce_mean(tf.square(self.input_ - self.output_),name="loss")
         
-#            if is_training:
-        self.train = tf.train.AdamOptimizer().minimize(self.loss)
+       
+        def check_is_train(ph):
+            def t_ (): 
+                print("is training")
+                return tf.train.AdamOptimizer().minimize(self.loss)
+            def f_ (): 
+                print("not training")
+                return tf.train.AdamOptimizer(1/math.inf).minimize(self.loss)
+            is_train = tf.cond(is_training, t_, f_)
+            return is_train
+        
+    
+        
+        self.train = check_is_train(is_training)
+
+#            if is_train:
+#                self.train = tf.train.AdamOptimizer().minimize(self.loss)
+#            else:
+#                self.trian = self.train
                       
