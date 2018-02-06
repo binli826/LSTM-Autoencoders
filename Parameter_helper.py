@@ -8,8 +8,6 @@ import sys
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
-from EncDecAD import EncDecAD
 
 class Parameter_Helper(object):
     
