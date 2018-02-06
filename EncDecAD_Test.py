@@ -42,7 +42,7 @@ class EncDecAD_Test(object):
             mu = sess.run(tensor_mu)
             sigma = sess.run(tensor_sigma)
             threshold = sess.run(tensor_threshold)
-
+            
             for count in range(len(self.conf.tn_list)//self.conf.batch_num):
                 normal_sub = np.array(self.conf.tn_list[count*self.conf.batch_num:(count+1)*self.conf.batch_num]) 
                 (input_n, output_n) = sess.run([input_, output_], {p_input: normal_sub, p_is_training: False})

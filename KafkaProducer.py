@@ -28,12 +28,20 @@ with open("C:/Users/Bin/Documents/Datasets/KDD99/columns.txt") as col_file:
 chunksize = 10000
 http = []
 smtp = []
+count =0
 for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
     for index,row in chunk.iterrows():
         message = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()
         producer.send('kdd99stream', message)
         print(message)
-        time.sleep(0.5)
+        count +=1
+        time.sleep(0.025)
+#        if count%400 == 0:
+#            print("stream sleeping for 15 sec.\n")
+#            time.sleep(15)
+        
+        
+        
 #        if row.service == 'http':
 #            http.append(row)
 #        elif row.service == 'smtp':
