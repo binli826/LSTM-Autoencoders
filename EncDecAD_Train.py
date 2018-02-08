@@ -20,10 +20,6 @@ from EncDecAD_Test import EncDecAD_Test
 
 
 conf = Conf_EncDecAD_KDD99()
-#[sn_list, va_list, vn1_list, vn2_list, tn_list, ta_list] = conf.data_list
-
-#p_input = conf.p_input
-#p_inputs = conf.p_inputs
 
 batch_num = conf.batch_num
 hidden_num = conf.hidden_num
@@ -45,10 +41,13 @@ p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, step_num, 1)]
 
 p_is_training = tf.placeholder(tf.bool)
 
+
 ae = EncDecAD(hidden_num, p_inputs, p_is_training , decode_without_input=False)
 
 with tf.Session() as sess:
     saver = tf.train.Saver()
+    graph = tf.get_default_graph()
+    
     sess.run(tf.global_variables_initializer())
     loss = []
     for i in range(iteration):
@@ -62,37 +61,25 @@ with tf.Session() as sess:
         loss.append(loss_val)
         print('iter %d:' % (i + 1), loss_val)
     pd.Series(loss).plot(title="Loss")
-
-    save_path = saver.save(sess, modelpath)
-    print("Model saved in file: %s" % save_path)
+    
+    # mu & sigma & threshold
+    input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
+    output_ = graph.get_tensor_by_name("decoder/output_:0")
+    para = Parameter_Helper(conf)
+    mu, sigma = para.mu_and_sigma(sess,input_, output_,p_input, p_is_training)
+    threshold = para.get_threshold(mu,sigma,sess,input_, output_,p_input, p_is_training)
+    
+    test = EncDecAD_Test(conf)
+    test.test_encdecad(sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta = 0.5)
     
     
     
-#************#
-#Calculate parameters using Vn1 dataset
-#************#
-para = Parameter_Helper(conf)
-mu, sigma = para.mu_and_sigma()
-
-#************#
-#Calculate threshold t using Vn2 and Va dataset.
-#************#
-threshold = para.get_threshold(mu,sigma)
-
-
-#************#
-# Test for training process
-#************#
-test = EncDecAD_Test(conf)
-test.test_encdecad(beta = 0.5)
-
-
-
-
-
-
-
-
-
-
- 
+    
+    c_mu = tf.constant(mu,dtype=tf.float32,name = "mu")
+    c_sigma = tf.constant(sigma,dtype=tf.float32,name = "sigma")
+    c_threshold = tf.constant(threshold,dtype=tf.float32,name = "threshold")
+    
+    save_path = saver.save(sess, conf.modelpath_p)
+    print("Model saved accompany with parameters and threshold in file: %s" % save_path)
+    
+    

@@ -74,7 +74,7 @@ def read_block_from_queue(q,stop_event):
 def prediction(stop_event):
     global dataframe
     pred = EncDecAD_Pred(conf)
-    local_preprocessing = LocalPreprocessing(conf)
+    local_preprocessing = LocalPreprocessing(conf.column_name_file ,conf.step_num)
     #  reload model
     sess = tf.Session()
     input_,output_,p_input,p_is_training,mu,sigma,threshold = pred.reloadModel(sess)

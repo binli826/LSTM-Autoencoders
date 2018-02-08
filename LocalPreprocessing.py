@@ -10,10 +10,9 @@ from sklearn.preprocessing import MinMaxScaler
 
 class LocalPreprocessing(object):
     
-    def __init__(self, conf):
+    def __init__(self, column_name_file ,step_num):
         # read in column names of KDD99 dataset
-        column_name_file = conf.column_name_file
-     
+        
         with open(column_name_file) as col_file:
             line = col_file.readline()
         columns = line.split('.')
@@ -23,12 +22,13 @@ class LocalPreprocessing(object):
             self.col_names.append(col.split(': ')[0].strip())
             self.col_types.append(col.split(': ')[1])
         self.col_names.append("label")
-        self.L = conf.step_num
+        self.L = step_num
         
         
     def run(self,dataset, for_training):
       
         df = dataset
+        df.columns = self.col_names
         continuous = df.iloc[:,np.array(pd.Series(self.col_types)=="continuous")]
         label = df.iloc[:,-1]
         grundtruth = np.zeros(label.size)
@@ -92,7 +92,7 @@ class LocalPreprocessing(object):
             va = anomaly[:(y//4)*self.L]
             ta = anomaly[(y//4)*self.L:]
             
-            return [sn,vn1,vn2,tn,va,ta]
+            return sn,vn1,vn2,tn,va,ta
             
         
         

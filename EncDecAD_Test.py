@@ -5,44 +5,25 @@ Created on Tue Feb  6 10:02:59 2018
 @author: Bin
 """
 
-import tensorflow as tf
+#import tensorflow as tf
 import numpy as np
 import pandas as pd
-
+from sklearn.metrics import confusion_matrix
 
 class EncDecAD_Test(object):
     
     def __init__(self, conf):
         self.conf = conf
     
-    def test_encdecad(self,beta = 0.5):
+    def test_encdecad(self,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta = 0.5):
         
-        with tf.Session() as sess:
             normal_score = []
             n_in = []
             n_out = []
             a_in = []
             a_out = []
             
-            saver = tf.train.import_meta_graph(self.conf.modelmeta_p) # load trained gragh, but without the trained parameters
-            saver.restore(sess,tf.train.latest_checkpoint(self.conf.modelpath_root))
-            graph = tf.get_default_graph()
-            
-            p_input = graph.get_tensor_by_name("p_input:0")
-            p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)] 
-            p_is_training = tf.placeholder(tf.bool)
 
-            input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
-            output_ = graph.get_tensor_by_name("decoder/output_:0")
-            
-            tensor_mu = graph.get_tensor_by_name("mu:0")
-            tensor_sigma = graph.get_tensor_by_name("sigma:0")
-            tensor_threshold = graph.get_tensor_by_name("threshold:0")
-            
-            mu = sess.run(tensor_mu)
-            sigma = sess.run(tensor_sigma)
-            threshold = sess.run(tensor_threshold)
-            
             for count in range(len(self.conf.tn_list)//self.conf.batch_num):
                 normal_sub = np.array(self.conf.tn_list[count*self.conf.batch_num:(count+1)*self.conf.batch_num]) 
                 (input_n, output_n) = sess.run([input_, output_], {p_input: normal_sub, p_is_training: False})
@@ -77,11 +58,24 @@ class EncDecAD_Test(object):
             pd.Series(bar).plot(label="threshold")
             
             
+            
+            label = np.zeros(len(abnormal_score)+len(normal_score))
+            label[:len(abnormal_score)] = 1
+            pred = np.zeros(len(abnormal_score)+len(normal_score))
+            tmp = abnormal_score+normal_score
+            pred[np.array(tmp) > threshold] = 1
+            
+            tn, fp, fn, tp = confusion_matrix(list(label), list(pred),labels=[1,0]).ravel() # 0 is positive, 1 is negative
+            print("Label sum, Pred sum:\n",sum(label),sum(pred))
+            
+            
             #targets
-            tp = np.array(abnormal_score)[np.array(abnormal_score)>threshold].size
-            fp = len(abnormal_score)-tp
-            fn = np.array(normal_score)[np.array(normal_score)>threshold].size
-            tn = len(normal_score)- fn
+#            tp = np.array(abnormal_score)[np.array(abnormal_score)>threshold].size
+#            fp = len(abnormal_score)-tp
+#            fn = np.array(normal_score)[np.array(normal_score)>threshold].size
+#            tn = len(normal_score)- fn
+            
+            
             P = tp/(tp+fp)
             R = tp/(tp+fn)
             fbeta= (1+beta*beta)*P*R/(beta*beta*P+R)

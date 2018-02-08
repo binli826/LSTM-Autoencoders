@@ -15,63 +15,29 @@ class Parameter_Helper(object):
         self.conf = conf
        
         
-    def mu_and_sigma(self):
-        
-        with tf.Session() as sess:
-            
-            saver = tf.train.import_meta_graph(self.conf.modelmeta) # load trained gragh, but without the trained parameters
-            saver.restore(sess,tf.train.latest_checkpoint(self.conf.modelpath_root))
-            
-#            saver = tf.train.Saver()
-#            saver.restore(sess,self.conf.modelpath)
-            graph = tf.get_default_graph()
+    def mu_and_sigma(self,sess,input_, output_,p_input, p_is_training):
 
-            
-            p_input = graph.get_tensor_by_name("p_input:0")
-            p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)] 
-            p_is_training = tf.placeholder(tf.bool)
-            
-            input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
-            output_ = graph.get_tensor_by_name("decoder/output_:0")
-            
-            print("Model restored.") 
-            print('Initialized')
-            
-            err_vec_list = []
-            for _ in range(len(self.conf.vn1_list)//self.conf.batch_num):
-                data =[]
-                for temp in range(self.conf.batch_num):
-                    ind = np.random.randint(0,len(self.conf.vn1_list)-1)
-                    sub = self.conf.vn1_list[ind]
-                    data.append(sub)
-                data = np.array(data,dtype=float)
-                data = data.reshape((20,20,34))
+        err_vec_list = []
+        for _ in range(len(self.conf.vn1_list)//self.conf.batch_num):
+            data =[]
+            for temp in range(self.conf.batch_num):
+                ind = np.random.randint(0,len(self.conf.vn1_list)-1)
+                sub = self.conf.vn1_list[ind]
+                data.append(sub)
+            data = np.array(data,dtype=float)
+            data = data.reshape((20,20,34))
 
-                (_input_, _output_) = sess.run([input_, output_], {p_input: data, p_is_training: False})
-                err_vec_list.append(abs(_input_ - _output_))
-            err_vec = np.mean(np.array(err_vec_list),axis=0).reshape(self.conf.batch_num,-1)
-            mu = np.mean(err_vec,axis=0)
-            sigma = np.cov(err_vec.T)
-            print("Got parameters mu and sigma.")
-            return mu, sigma
+            (_input_, _output_) = sess.run([input_, output_], {p_input: data, p_is_training: False})
+            err_vec_list.append(abs(_input_ - _output_))
+        err_vec = np.mean(np.array(err_vec_list),axis=0).reshape(self.conf.batch_num,-1)
+        mu = np.mean(err_vec,axis=0)
+        sigma = np.cov(err_vec.T)
+        print("Got parameters mu and sigma.")
+        return mu, sigma
         
 
         
-    def get_threshold(self,mu,sigma):
-        
-        with tf.Session() as sess:
-            saver = tf.train.import_meta_graph(self.conf.modelmeta) # load trained gragh, but without the trained parameters
-            saver.restore(sess,tf.train.latest_checkpoint(self.conf.modelpath_root))
-            graph = tf.get_default_graph()
-            
-            p_input = graph.get_tensor_by_name("p_input:0")
-            p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)]
-            p_is_training = tf.placeholder(tf.bool)
-            
-            input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
-            output_ = graph.get_tensor_by_name("decoder/output_:0")
-        
-        
+    def get_threshold(self,mu,sigma,sess,input_, output_,p_input, p_is_training):
 
             normal_score = []
             for count in range(len(self.conf.vn2_list)//self.conf.batch_num):
@@ -94,7 +60,6 @@ class Parameter_Helper(object):
                    temp = np.dot( (err_a[batch] - mu ).reshape(1,-1)  , sigma.T)
                    s = np.dot(temp,(err_a[batch] - mu ))
                    abnormal_score.append(s[0])      
-            print('Finished')
         
         
             upper = np.median(np.array(abnormal_score))
@@ -124,18 +89,8 @@ class Parameter_Helper(object):
                 candidate += delta 
             
             print("Threshold: ",threshold)
-            # anomaly score of vn2 and va dataset
-            pd.Series(normal_score).plot(figsize=(18,5))
-            pd.Series(abnormal_score).plot()
-            bar = threshold*np.ones(len(normal_score)+len(abnormal_score))
-            pd.Series(bar).plot(label="threshold")
-            c_mu = tf.constant(mu,dtype=tf.float32,name = "mu")
-            c_sigma = tf.constant(sigma,dtype=tf.float32,name = "sigma")
-            c_threshold = tf.constant(threshold,dtype=tf.float32,name = "threshold")
-            
-            save_path = saver.save(sess, self.conf.modelpath_p)
-            print("Model saved accompany with parameters and threshold in file: %s" % save_path)
-        return threshold
+
+            return threshold
 
   
   
