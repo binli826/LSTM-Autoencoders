@@ -8,7 +8,7 @@ import time
 from kafka import KafkaProducer
 import pandas as pd
 
-filename = "C:/Users/Bin/Documents/Datasets/KDD99/6_subsets_win/test.csv"
+filename = "C:/Users/Bin/Documents/Datasets/KDD99/6_subsets_win/test_with_label.csv"
 
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # column names, is_guest_login & dis_host_login & logged_in & land & flag & service & protocol_type
@@ -35,7 +35,7 @@ for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
         producer.send('kdd99stream', message)
         print(message)
         count +=1
-        time.sleep(0.025)
+        time.sleep(0.25)
 #        if count%400 == 0:
 #            print("stream sleeping for 15 sec.\n")
 #            time.sleep(15)

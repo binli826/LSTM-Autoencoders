@@ -40,7 +40,8 @@ def block_generator2queue(q,stop_event):
             if stop_event.is_set():
                 break
             row = message.value.decode("utf-8") 
-            list_of_str = row.strip(",null,null,null,null,null,null,null,null").split(",")
+            list_of_str = row.replace(",null,null,null,null,null,null,null,null","").split(",")
+#            list_of_str = row.strip(",null,null,null,null,null,null,null,null").split(",")
             list_of_num = [float(n) for n in list_of_str]
             block.append(list_of_num)
             if len(block)==batch_num*step_num:
@@ -75,7 +76,7 @@ def prediction(stop_event):
             lock.acquire()
             try:
                 print("Making prediction...")
-                pred.prediction(dataframe)
+                pred.prediction(dataframe.iloc[:,:-1],dataframe.iloc[:,-1])
                 print("Finish prediction.")
             finally:
                 dataframe = pd.DataFrame()

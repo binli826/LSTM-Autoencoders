@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
+from sklearn.metrics import confusion_matrix
 
 
 class EncDecAD_Pred(object):
@@ -19,7 +20,7 @@ class EncDecAD_Pred(object):
     def __init__(self,):
         self.conf = Conf_Prediction_KDD99()
         
-    def prediction(self,dataset,beta = 0.5):
+    def prediction(self,dataset,label,beta = 0.5):
         
         with tf.Session() as sess:
             
@@ -63,7 +64,8 @@ class EncDecAD_Pred(object):
                    s = np.dot(temp,(err_n[batch] - mu ))
                    anomaly_scores.append(s[0])
             
-            
+            pred = np.zeros(len(anomaly_scores))
+            pred[np.array(anomaly_scores) > threshold] = 1
             print('Predict result :')
             fig, ax = plt.subplots()
             pd.Series(anomaly_scores).plot(label="normal_score",figsize=(18,5))
@@ -73,13 +75,16 @@ class EncDecAD_Pred(object):
             plt.show()
             plt.close(fig)
             
+            
+            tn, fp, fn, tp = confusion_matrix(list(label), list(pred)).ravel()
+ 
 #            #targets
 #            tp = np.array(abnormal_score)[np.array(abnormal_score)>threshold].size
 #            fp = len(abnormal_score)-tp
 #            fn = np.array(normal_score)[np.array(normal_score)>threshold].size
 #            tn = len(normal_score)- fn
-#            P = tp/(tp+fp)
-#            R = tp/(tp+fn)
-#            fbeta= (1+beta*beta)*P*R/(beta*beta*P+R)
-#            print("tp: %.3f,fp: %.3f,tn: %.3f,fn: %.3f,\nP: %.3f,R: %.3f"%(tp,fp,tn,fn,P,R))
-#            print("Fbeta: %.3f"%fbeta)
+            P = tp/(tp+fp)
+            R = tp/(tp+fn)
+            fbeta= (1+beta*beta)*P*R/(beta*beta*P+R)
+            print("tp: %.3f,fp: %.3f,tn: %.3f,fn: %.3f,\nP: %.3f,R: %.3f"%(tp,fp,tn,fn,P,R))
+            print("Fbeta: %.3f"%fbeta)
