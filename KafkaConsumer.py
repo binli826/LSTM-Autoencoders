@@ -15,7 +15,7 @@ import time, threading
 import sys
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from EncDecAD_Pred import EncDecAD_Pred
-
+#from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
 
 batch_num =20
 step_num = 20
@@ -40,8 +40,8 @@ def block_generator2queue(q,stop_event):
             if stop_event.is_set():
                 break
             row = message.value.decode("utf-8") 
-            list_of_str = row.replace(",null,null,null,null,null,null,null,null","").split(",")
-#            list_of_str = row.strip(",null,null,null,null,null,null,null,null").split(",")
+#            list_of_str = row.replace(",null,null,null,null,null,null,null,null","").split(",")
+            list_of_str = row.strip(",null,null,null,null,null,null,null,null").split(",")
             list_of_num = [float(n) for n in list_of_str]
             block.append(list_of_num)
             if len(block)==batch_num*step_num:
@@ -85,9 +85,6 @@ def prediction(stop_event):
 def main():
     q = queue.Queue()
     stop_event = threading.Event()
-   
-    
-    
     
     write = threading.Thread(target=block_generator2queue, name='WriteThread',args=(q,stop_event,))
     read = threading.Thread(target=read_block_from_queue, name='ReadThread',args=(q,stop_event,))

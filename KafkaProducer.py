@@ -35,7 +35,7 @@ for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
         producer.send('kdd99stream', message)
         print(message)
         count +=1
-        time.sleep(0.25)
+        time.sleep(0.01)
 #        if count%400 == 0:
 #            print("stream sleeping for 15 sec.\n")
 #            time.sleep(15)
