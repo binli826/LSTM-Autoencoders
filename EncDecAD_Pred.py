@@ -20,6 +20,7 @@ class EncDecAD_Pred(object):
     def __init__(self,):
         self.conf = Conf_Prediction_KDD99()
         
+
     def prediction(self,dataset,label,beta = 0.5):
         
         with tf.Session() as sess:
