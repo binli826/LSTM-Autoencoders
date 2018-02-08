@@ -46,7 +46,7 @@ class EncDecAD_Pred(object):
             sigma = sess.run(tensor_sigma)
             threshold = sess.run(tensor_threshold)
 
-            print("LSTMs-Autoencoder Model imported.")
+            print("LSTMs-Autoencoder Model reloaded.")
             
             for count in range(dataset.shape[0]//self.conf.batch_num//self.conf.step_num):
                 data = np.array(dataset[count*self.conf.batch_num*self.conf.step_num:
@@ -76,9 +76,9 @@ class EncDecAD_Pred(object):
             fig, ax = plt.subplots()
             ax.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
             anomaly_scores = pd.Series(anomaly_scores)
-            plt.scatter(anomaly_scores[anomaly_scores==1].index,anomaly_scores[anomaly_scores==1],c='b')
-            plt.scatter(anomaly_scores[anomaly_scores==0].index,anomaly_scores[anomaly_scores==0],c='r')
-          
+#            plt.scatter(anomaly_scores[anomaly_scores==1].index,anomaly_scores[anomaly_scores==1],c='b')
+#            plt.scatter(anomaly_scores[anomaly_scores==0].index,anomaly_scores[anomaly_scores==0],c='r')
+            plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score")
 #            pd.Series(anomaly_scores).plot(label="Anomaly_score",figsize=(18,5))
 #            pd.Series(abnormal_score).plot(label="abnormal_score")
             bar = threshold*np.ones(anomaly_scores.size)
