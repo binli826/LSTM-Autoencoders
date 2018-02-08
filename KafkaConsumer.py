@@ -116,32 +116,33 @@ def prediction(stop_event):
                 
                 dataset = dataframe.iloc[:,:-1]
                 label = dataframe.iloc[:,-1]
-                
-                for count in range(dataset.shape[0]//conf.batch_num//conf.step_num):
-                    data = np.array(dataset[count*conf.batch_num*conf.step_num:
-                                    (count+1)*conf.batch_num*conf.step_num])
-                    data = data.reshape((conf.batch_num,conf.step_num,-1)) #**********#
-                    (input_n, output_n) = sess.run([input_, output_], {p_input: data, p_is_training: False})
-                    inputs.append(input_n)
-                    predictions.append(output_n)
-                    err_n = abs(input_n-output_n).reshape(-1,conf.step_num)
-                    err_n = err_n.reshape(conf.batch_num,-1)
-                    
-                    for batch in range(conf.batch_num):
-                       temp = np.dot( (err_n[batch] - mu ).reshape(1,-1)  , sigma.T)
-                       s = np.dot(temp,(err_n[batch] - mu ))
-                       anomaly_scores.append(s[0])
-                # each anomaly_score represent for the anomalous likelyhood of a window (length == batch_num)
-                # so here replicate each score 20 times, to approximate the anomalous likelyhood for each data point
-                tmp = []
-                for i in range(conf.step_num):
-                    for _ in range(conf.batch_num):
-                        tmp.append(anomaly_scores[i])
-                anomaly_scores = tmp
-                
-                pred = np.zeros(len(anomaly_scores))
-                pred[np.array(anomaly_scores) > threshold] = 1
-                evaluation(pred,label,threshold,anomaly_scores)
+                pred.predict(dataset,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold)
+#                
+#                for count in range(dataset.shape[0]//conf.batch_num//conf.step_num):
+#                    data = np.array(dataset[count*conf.batch_num*conf.step_num:
+#                                    (count+1)*conf.batch_num*conf.step_num])
+#                    data = data.reshape((conf.batch_num,conf.step_num,-1)) #**********#
+#                    (input_n, output_n) = sess.run([input_, output_], {p_input: data, p_is_training: False})
+#                    inputs.append(input_n)
+#                    predictions.append(output_n)
+#                    err_n = abs(input_n-output_n).reshape(-1,conf.step_num)
+#                    err_n = err_n.reshape(conf.batch_num,-1)
+#                    
+#                    for batch in range(conf.batch_num):
+#                       temp = np.dot( (err_n[batch] - mu ).reshape(1,-1)  , sigma.T)
+#                       s = np.dot(temp,(err_n[batch] - mu ))
+#                       anomaly_scores.append(s[0])
+#                # each anomaly_score represent for the anomalous likelyhood of a window (length == batch_num)
+#                # so here replicate each score 20 times, to approximate the anomalous likelyhood for each data point
+#                tmp = []
+#                for i in range(conf.step_num):
+#                    for _ in range(conf.batch_num):
+#                        tmp.append(anomaly_scores[i])
+#                anomaly_scores = tmp
+#                
+#                pred = np.zeros(len(anomaly_scores))
+#                pred[np.array(anomaly_scores) > threshold] = 1
+#                evaluation(pred,label,threshold,anomaly_scores)
 
                 #.......................................#
                 print("Finish prediction.")
