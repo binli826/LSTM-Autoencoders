@@ -6,6 +6,7 @@ Created on Fri Jan 26 15:17:47 2018
 """
 import tensorflow as tf
 import math
+
 class EncDecAD(object):
 
     def __init__(self, hidden_num, inputs, is_training, optimizer=None, reverse=True, decode_without_input=False):

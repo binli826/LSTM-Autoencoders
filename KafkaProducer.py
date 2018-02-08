@@ -8,10 +8,11 @@ import time
 from kafka import KafkaProducer
 import pandas as pd
 
-filename = "C:/Users/Bin/Documents/Datasets/KDD99/6_subsets_win/test_with_label.csv"
 
+filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected"
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # column names, is_guest_login & dis_host_login & logged_in & land & flag & service & protocol_type
+
 with open("C:/Users/Bin/Documents/Datasets/KDD99/columns.txt") as col_file:
     line = col_file.readline()
     #line = line.replace('.',',')
@@ -26,20 +27,16 @@ with open("C:/Users/Bin/Documents/Datasets/KDD99/columns.txt") as col_file:
 
 
 chunksize = 10000
-http = []
-smtp = []
-count =0
+#http = []
+#smtp = []
+
 for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
     for index,row in chunk.iterrows():
         message = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()
         producer.send('kdd99stream', message)
         print(message)
-        count +=1
         time.sleep(0.01)
-#        if count%400 == 0:
-#            print("stream sleeping for 15 sec.\n")
-#            time.sleep(15)
-        
+
         
         
 #        if row.service == 'http':

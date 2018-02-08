@@ -9,9 +9,11 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
 class LocalPreprocessing(object):
-    def __init__(self, ):
+    
+    def __init__(self, conf):
         # read in column names of KDD99 dataset
-        column_name_file = "C:/Users/Bin/Documents/Datasets/KDD99/columns.txt"
+        column_name_file = conf.column_name_file
+     
         with open(column_name_file) as col_file:
             line = col_file.readline()
         columns = line.split('.')
@@ -21,17 +23,18 @@ class LocalPreprocessing(object):
             self.col_names.append(col.split(': ')[0].strip())
             self.col_types.append(col.split(': ')[1])
         self.col_names.append("label")
+        self.L = conf.step_num
         
         
-        
-    def run(self,dataset, for_training, L = 0):
-        
+    def run(self,dataset, for_training):
+      
         df = dataset
         continuous = df.iloc[:,np.array(pd.Series(self.col_types)=="continuous")]
         label = df.iloc[:,-1]
         grundtruth = np.zeros(label.size)
         grundtruth[np.array(label)!="normal"] = 1
         grundtruth = pd.Series(grundtruth)
+        
         
         # scaling 
         scaler = MinMaxScaler()
@@ -57,7 +60,7 @@ class LocalPreprocessing(object):
             
             # for training set split, considering only the continous data points with in a length L window
             for index, row in data.iterrows():
-                if len(temp) ==L:
+                if len(temp) ==self.L:
                     for x in temp:
                         if data.iloc[x,-2] == "normal.":
                             n_list.append(x)
@@ -78,16 +81,16 @@ class LocalPreprocessing(object):
             anomaly = data.iloc[np.array(a_list),:-2]
             
             # size of sn:vn1:vn2:tn == 3:1:1:4 (self defined)
-            x = int(normal.shape[0]/L)
-            sn = normal[:(x//2)*L]
-            vn1 = normal[(x//2)*L:(x//2)*L+(x//6)*L]
-            vn2 = normal[(x//2)*L+(x//6)*L:(x//2)*L+(x//3)*L]
-            tn = normal[(x//2)*L+(x//3)*L:]
+            x = int(normal.shape[0]/self.L)
+            sn = normal[:(x//2)*self.L]
+            vn1 = normal[(x//2)*self.L:(x//2)*self.L+(x//6)*self.L]
+            vn2 = normal[(x//2)*self.L+(x//6)*self.L:(x//2)*self.L+(x//3)*self.L]
+            tn = normal[(x//2)*self.L+(x//3)*self.L:]
             
             # size of va:ta == 1:3 (self defined)
-            y = int(anomaly.shape[0]/L)
-            va = anomaly[:(y//4)*L]
-            ta = anomaly[(y//4)*L:]
+            y = int(anomaly.shape[0]/self.L)
+            va = anomaly[:(y//4)*self.L]
+            ta = anomaly[(y//4)*self.L:]
             
             return [sn,vn1,vn2,tn,va,ta]
             
