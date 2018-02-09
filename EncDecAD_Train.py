@@ -39,7 +39,7 @@ decode_without_input = conf.decode_without_input
 p_input = tf.placeholder(tf.float32, shape=(batch_num, step_num, elem_num),name = "p_input")
 p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, step_num, 1)]
 
-p_is_training = tf.placeholder(tf.bool)
+p_is_training = tf.placeholder(tf.bool,name= "is_training_")
 
 
 ae = EncDecAD(hidden_num, p_inputs, p_is_training , decode_without_input=False)

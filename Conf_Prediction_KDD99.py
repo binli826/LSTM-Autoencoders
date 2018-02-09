@@ -14,8 +14,9 @@ class Conf_Prediction_KDD99(object):
         self.hidden_num = 100
         self.step_num = 20
         self.iteration = 1000
-        self.min_test_block_num = 5
-        self.min_retrain_block_num = 20
+        self.retrain_iteration = 300
+        self.min_test_block_num = 3
+        self.min_retrain_block_num = 3
         self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
         self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
         self.modelmeta = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt.meta"

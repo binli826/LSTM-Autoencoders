@@ -48,9 +48,9 @@ class EncDecAD(object):
             self.output_ = tf.transpose(tf.stack(dec_outputs), [1, 0, 2],name="output_")
             self.loss = tf.reduce_mean(tf.square(self.input_ - self.output_),name="loss")
         
-       
-        def check_is_train(ph):
-            def t_ (): return tf.train.AdamOptimizer().minimize(self.loss)
+        
+        def check_is_train(is_training):
+            def t_ (): return tf.train.AdamOptimizer().minimize(self.loss,name="train_")
             def f_ (): return tf.train.AdamOptimizer(1/math.inf).minimize(self.loss)
             is_train = tf.cond(is_training, t_, f_)
             return is_train

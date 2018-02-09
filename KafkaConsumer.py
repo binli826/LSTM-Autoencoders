@@ -68,7 +68,7 @@ def read_block_from_queue(q,stop_event):
             if dataframe.size == 0:
                 dataframe = b
             else:
-                pd.concat((dataframe,b),axis=0)
+                dataframe = pd.concat((dataframe,b),axis=0)
                 
         else :
             time.sleep(0.5)
@@ -79,14 +79,14 @@ def prediction(stop_event):
     local_preprocessing = LocalPreprocessing(conf.column_name_file ,conf.step_num)
     #  reload model
     sess = tf.Session()
-    input_,output_,p_input,p_is_training,mu,sigma,threshold = pred.reloadModel(sess)
+    input_,output_,p_input,p_is_training,loss_,train_,mu,sigma,threshold = pred.reloadModel(sess)
 
     print("LSTMs-Autoencoder Model reloaded.")
     buffer = [] # for collecting hard examples used for retraining model
     while not stop_event.is_set():
         if dataframe.index.size < batch_num*step_num*MIN_TEST_BLOCK_NUM:
             sec = 10
-            print("Currently not enough data for prediction, wait for %d seconds."%sec)
+            print("Currently not enough data for prediction, ",dataframe.index.size,"/",batch_num*step_num*MIN_TEST_BLOCK_NUM)
             time.sleep(sec)
         else:
             lock.acquire()
@@ -94,23 +94,34 @@ def prediction(stop_event):
                 print("Local preprocessing...")
                 #After preprocessing, the second to last col is the string class label
                 # and last col is the 0/1 grundtruth (1 stand for anomaly)
-                dataframe = local_preprocessing.run(dataframe, for_training = False)
+                dataframe_preprocessed = local_preprocessing.run(dataframe, for_training = False)
                 
                 print("Making prediction...")
               
-                dataset = dataframe.iloc[:,:-2]
-                label = dataframe.iloc[:,-1]
-                class_list = dataframe.iloc[:,-2]
+                dataset = dataframe_preprocessed.iloc[:,:-2]
+                label = dataframe_preprocessed.iloc[:,-1]
+                class_list = dataframe_preprocessed.iloc[:,-2]
                 
                 # window.size == step_num
                 hard_example_window_index = pred.predict(dataset,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold)
-                buffer.append(dataset[hard_example_window_index])
-                            
+                 # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
+                 #hard examples from the original dataframe                            
+                buffer.append(dataframe[hard_example_window_index])
                 if len(buffer) > MIN_RETRAIN_BLOCK_NUM*batch_num:
                         print("Re-Training Model...")
                         data_for_retrain = pd.concat(buffer,axis=0).reset_index(drop=True)
                         #retrain dataset shape: (batch_num*step_num*MIN_RETRAIN_BLOCK_NUM,elem_num)
-                        EncDecAD_ReTrain(data_for_retrain[:data_for_retrain.index.size-data_for_retrain.index.size%batch_num])
+                        data_for_retrain = data_for_retrain[:data_for_retrain.index.size-data_for_retrain.index.size%batch_num]
+                        sn,vn1,vn2,tn,va,ta = local_preprocessing.run(data_for_retrain, for_training = True)
+                        
+                        if min(sn.size,vn1.size,vn2.size,tn.size,va.size,ta.size) == 0:
+                            print("Not enough normal or anomaly data for retraining, still waiting for more data.")
+                            dataframe = pd.DataFrame()
+                            lock.release()
+                            continue
+                        retrain = EncDecAD_ReTrain(sn,vn1,vn2,tn,va,ta)
+                        retrain.continue_training(sess,loss_, train_,p_input,p_is_training)
+                        
                         buffer.clear()
                 else: 
                     print("Finish prediction.Waiting for next batches of data.")

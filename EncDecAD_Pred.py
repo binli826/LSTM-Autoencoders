@@ -25,8 +25,9 @@ class EncDecAD_Pred(object):
         
         p_input = graph.get_tensor_by_name("p_input:0")
         p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, self.conf.step_num, 1)] 
-        p_is_training = tf.placeholder(tf.bool)
-    
+#        p_is_training = tf.placeholder(tf.bool)
+        p_is_training = graph.get_tensor_by_name("is_training_:0")
+        
         input_= tf.transpose(tf.stack(p_inputs), [1, 0, 2])    
         output_ = graph.get_tensor_by_name("decoder/output_:0")
         
@@ -34,10 +35,13 @@ class EncDecAD_Pred(object):
         tensor_sigma = graph.get_tensor_by_name("sigma:0")
         tensor_threshold = graph.get_tensor_by_name("threshold:0")
         
+        loss_ = graph.get_tensor_by_name("decoder/loss:0")
+        train_ = graph.get_operation_by_name("cond/train_")
+        
         mu = sess.run(tensor_mu)
         sigma = sess.run(tensor_sigma)
         threshold = sess.run(tensor_threshold)
-        return input_,output_,p_input,p_is_training,mu,sigma,threshold
+        return input_,output_,p_input,p_is_training,loss_,train_,mu,sigma,threshold
         
     def predict(self,dataset,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta=0.5):
             inputs = []
