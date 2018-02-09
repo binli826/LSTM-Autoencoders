@@ -15,9 +15,10 @@ class Conf_EncDecAD_KDD99(object):
         self.batch_num = 20
         self.hidden_num = 100
         self.step_num = 20
+        # data used for off-line training
         self.input_root = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected"  # to be edit to e.g. 5%KDD......
-        self.iteration = 1000
-        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/52test/"
+        self.iteration = 500
+        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
         self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
         self.modelmeta = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt.meta"
         self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_kdd99_v1_para.ckpt"
@@ -33,7 +34,7 @@ class Conf_EncDecAD_KDD99(object):
 #        data_helper = Data_Helper(None,self.step_num,self.training_data_source)
         
         self.training_data_source = "file"
-        data_helper = Data_Helper(self.input_root,self.step_num,self.training_data_source)
+        data_helper = Data_Helper(self.input_root,self.step_num,self.batch_num,self.training_data_source)
         
         self.sn_list = data_helper.sn_list
         self.va_list = data_helper.va_list

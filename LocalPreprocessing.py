@@ -79,6 +79,10 @@ class LocalPreprocessing(object):
         
             normal = data.iloc[np.array(n_list),:-2]
             anomaly = data.iloc[np.array(a_list),:-2]
+            same_size = min(normal.index.size,anomaly.index.size)
+            
+            normal = normal[:same_size]
+            anomaly = anomaly[:same_size]
             
             # size of sn:vn1:vn2:tn == 3:1:1:4 (self defined)
             x = int(normal.shape[0]/self.L)

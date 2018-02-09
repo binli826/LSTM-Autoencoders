@@ -78,7 +78,7 @@ with tf.Session() as sess:
     c_mu = tf.constant(mu,dtype=tf.float32,name = "mu")
     c_sigma = tf.constant(sigma,dtype=tf.float32,name = "sigma")
     c_threshold = tf.constant(threshold,dtype=tf.float32,name = "threshold")
-    
+    print("Saving model to disk...")
     save_path = saver.save(sess, conf.modelpath_p)
     print("Model saved accompany with parameters and threshold in file: %s" % save_path)
     
