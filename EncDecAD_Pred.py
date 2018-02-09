@@ -71,6 +71,7 @@ class EncDecAD_Pred(object):
             fig, ax = plt.subplots(figsize=(18,5))
             ax.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
             anomaly_scores = pd.Series(anomaly_scores)
+            
             plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score",s=2)
             bar = threshold*np.ones(anomaly_scores.size)
             pd.Series(bar).plot(label="Threshold")
@@ -93,5 +94,11 @@ class EncDecAD_Pred(object):
             print("tp: %.d,fp: %.d,tn: %.d,fn: %.d,\nP: %.3f,R: %.3f"%(tp,fp,tn,fn,P,R))
             print("Fbeta: %.3f"%fbeta)
             
+            # return hard examples for model retraining
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])
+            hard_exaple_window_index = anomaly_scores[anomaly_scores.between(lower_bound,upper_bound,inclusive=True)]
+            
+            return hard_exaple_window_index
             
     

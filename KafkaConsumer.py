@@ -16,11 +16,13 @@ sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from EncDecAD_Pred import EncDecAD_Pred
 from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
 from LocalPreprocessing import LocalPreprocessing
+from EncDecAD_ReTrain import EncDecAD_ReTrain
 
 conf = Conf_Prediction_KDD99()
 batch_num =conf.batch_num
 step_num = conf.step_num
-
+MIN_TEST_BLOCK_NUM = conf.min_test_block_num
+MIN_RETRAIN_BLOCK_NUM = conf.min_retrain_block_num
 kafka_topic = 'kdd99stream'
 g_id='test-consumer-group'
 servers = ['localhost:9092']
@@ -80,10 +82,10 @@ def prediction(stop_event):
     input_,output_,p_input,p_is_training,mu,sigma,threshold = pred.reloadModel(sess)
 
     print("LSTMs-Autoencoder Model reloaded.")
-   
+    buffer = [] # for collecting hard examples used for retraining model
     while not stop_event.is_set():
-        if dataframe.size == 0:
-            sec = 5
+        if dataframe.index.size < batch_num*step_num*MIN_TEST_BLOCK_NUM:
+            sec = 10
             print("Currently not enough data for prediction, wait for %d seconds."%sec)
             time.sleep(sec)
         else:
@@ -99,14 +101,26 @@ def prediction(stop_event):
                 dataset = dataframe.iloc[:,:-2]
                 label = dataframe.iloc[:,-1]
                 class_list = dataframe.iloc[:,-2]
-                pred.predict(dataset,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold)
-                print("Finish prediction.")
+                
+                # window.size == step_num
+                hard_example_window_index = pred.predict(dataset,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold)
+                buffer.append(dataset[hard_example_window_index])
+                            
+                if len(buffer) > MIN_RETRAIN_BLOCK_NUM*batch_num:
+                        print("Re-Training Model...")
+                        data_for_retrain = pd.concat(buffer,axis=0).reset_index(drop=True)
+                        #retrain dataset shape: (batch_num*step_num*MIN_RETRAIN_BLOCK_NUM,elem_num)
+                        EncDecAD_ReTrain(data_for_retrain[:data_for_retrain.index.size-data_for_retrain.index.size%batch_num])
+                        buffer.clear()
+                else: 
+                    print("Finish prediction.Waiting for next batches of data.")
                 
             finally:
                 dataframe = pd.DataFrame()
                 lock.release()
-                
-                
+
+              
+              
 def main():
     q = queue.Queue()
     stop_event = threading.Event()
