@@ -25,7 +25,7 @@ class Parameter_Helper(object):
                 sub = self.conf.vn1_list[ind]
                 data.append(sub)
             data = np.array(data,dtype=float)
-            data = data.reshape((20,20,34))
+            data = data.reshape((self.conf.batch_num,self.conf.step_num,self.conf.elem_num))
 
             (_input_, _output_) = sess.run([input_, output_], {p_input: data, p_is_training: False})
             err_vec_list.append(abs(_input_ - _output_))

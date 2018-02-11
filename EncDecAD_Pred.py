@@ -47,6 +47,7 @@ class EncDecAD_Pred(object):
             inputs = []
             predictions = []
             anomaly_scores = []
+            anomaly_scores_sub = []
             for count in range(dataset.shape[0]//self.conf.batch_num//self.conf.step_num):
                 data = np.array(dataset[count*self.conf.batch_num*self.conf.step_num:
                                 (count+1)*self.conf.batch_num*self.conf.step_num])
@@ -60,14 +61,17 @@ class EncDecAD_Pred(object):
                 for batch in range(self.conf.batch_num):
                    temp = np.dot( (err_n[batch] - mu ).reshape(1,-1)  , sigma.T)
                    s = np.dot(temp,(err_n[batch] - mu ))
-                   anomaly_scores.append(s[0])
+                   anomaly_scores_sub.append(s[0])
             # each anomaly_score represent for the anomalous likelyhood of a window (length == batch_num)
             # so here replicate each score 20 times, to approximate the anomalous likelyhood for each data point
-            tmp = []
-            for i in range(self.conf.step_num):
-                for _ in range(self.conf.batch_num):
-                    tmp.append(anomaly_scores[i])
-            anomaly_scores = tmp
+                tmp = []
+                for i in range(self.conf.step_num):
+                    for _ in range(self.conf.batch_num):
+                        tmp.append(anomaly_scores_sub[i])
+                anomaly_scores_sub = tmp
+                
+                anomaly_scores += anomaly_scores_sub
+                
             
             pred = np.zeros(len(anomaly_scores))
             pred[np.array(anomaly_scores) > threshold] = 1
@@ -83,6 +87,7 @@ class EncDecAD_Pred(object):
             plt.show()
             plt.close(fig)
             
+            assert len(list(label))==len(list(pred)), "label(%d) and pred(%d) have different size."%(len(list(label)),len(list(pred)))
             tn, fp, fn, tp = confusion_matrix(list(label), list(pred),labels=[1,0]).ravel() # 0 is positive, 1 is negative
             print("Label sum, Pred sum:\n",sum(label),sum(pred))
 #            #targets
@@ -91,17 +96,18 @@ class EncDecAD_Pred(object):
 #            fn = np.array(normal_score)[np.array(normal_score)>threshold].size
 #            tn = len(normal_score)- fn
             
-            
+            ''' 
             P = tp/(tp+fp)
             R = tp/(tp+fn)
             fbeta= (1+beta*beta)*P*R/(beta*beta*P+R)
             print("tp: %.d,fp: %.d,tn: %.d,fn: %.d,\nP: %.3f,R: %.3f"%(tp,fp,tn,fn,P,R))
             print("Fbeta: %.3f"%fbeta)
-            
+            '''
             # return hard examples for model retraining
-            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])
-            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])
-            hard_exaple_window_index = anomaly_scores[anomaly_scores.between(lower_bound,upper_bound,inclusive=True)]
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold]) 
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold]) 
+
+            hard_exaple_window_index = anomaly_scores.between(lower_bound,upper_bound,inclusive=True)
             
             return hard_exaple_window_index
             

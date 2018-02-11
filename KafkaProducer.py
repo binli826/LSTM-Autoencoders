@@ -8,8 +8,8 @@ import time
 from kafka import KafkaProducer
 import pandas as pd
 
-
-filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data.corrected"
+filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected"
+#filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data.corrected"
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # column names, is_guest_login & dis_host_login & logged_in & land & flag & service & protocol_type
 
@@ -38,7 +38,7 @@ for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
         message = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()
         producer.send('kdd99stream', message)
         print(message)
-        time.sleep(0.001)
+        time.sleep(0.01)
 
         
         

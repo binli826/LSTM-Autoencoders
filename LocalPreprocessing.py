@@ -19,32 +19,36 @@ class LocalPreprocessing(object):
         self.col_names = []
         self.col_types = []
         for col in columns:
-            self.col_names.append(col.split(': ')[0].strip())
+            self.col_names.append(col.split(': ')[0].strip()) # size ==41
             self.col_types.append(col.split(': ')[1])
         self.col_names.append("label")
         self.L = step_num
-        
+
         
     def run(self,dataset, for_training):
-      
         df = dataset
+        assert len(self.col_names) == df.shape[1], "Length inconsistant: col_names(%d), df.columns(%d)"%(len(self.col_names), df.shape[1])
         df.columns = self.col_names
-        continuous = df.iloc[:,np.array(pd.Series(self.col_types)=="continuous")]
         label = df.iloc[:,-1]
+        df = df.iloc[:,:-1]
+        continuous = df.iloc[:,np.array(pd.Series(self.col_types)=="continuous")]
+     
         grundtruth = np.zeros(label.size)
         grundtruth[np.array(label)!="normal"] = 1
         grundtruth = pd.Series(grundtruth)
-        
-        
         # scaling 
         scaler = MinMaxScaler()
         scaler.fit(continuous)
         cont = scaler.transform(continuous)
-        
+
         cont = pd.DataFrame(cont)
         cont.columns = continuous.columns.values
+        assert cont.index.size == label.size
+        [cont,label] = [cl.reset_index(drop=True) for cl in [cont,label]]
         data = pd.concat((cont,label),axis=1)
+        assert data.index.size == grundtruth.size
         data = pd.concat((data,grundtruth),axis=1)
+        
         # for test, return a scaled data block,
         # with second to last col being the string class label
         # and last col being the 0/1 grundtruth (1 stand for anomaly)
@@ -62,7 +66,7 @@ class LocalPreprocessing(object):
             for index, row in data.iterrows():
                 if len(temp) ==self.L:
                     for x in temp:
-                        if data.iloc[x,-2] == "normal.":
+                        if data.iloc[x,-2] == "normal":
                             n_list.append(x)
                         else:
                             a_list.append(x)
@@ -79,23 +83,25 @@ class LocalPreprocessing(object):
         
             normal = data.iloc[np.array(n_list),:-2]
             anomaly = data.iloc[np.array(a_list),:-2]
-            same_size = min(normal.index.size,anomaly.index.size)
-            
-            normal = normal[:same_size]
-            anomaly = anomaly[:same_size]
+
             
             # size of sn:vn1:vn2:tn == 3:1:1:4 (self defined)
-            x = int(normal.shape[0]/self.L)
-            sn = normal[:(x//2)*self.L]
-            vn1 = normal[(x//2)*self.L:(x//2)*self.L+(x//6)*self.L]
-            vn2 = normal[(x//2)*self.L+(x//6)*self.L:(x//2)*self.L+(x//3)*self.L]
-            tn = normal[(x//2)*self.L+(x//3)*self.L:]
-            
+#            x = int(normal.shape[0]/self.L)
+#            sn = normal[:(x//2)*self.L]
+#            vn1 = normal[(x//2)*self.L:(x//2)*self.L+(x//6)*self.L]
+#            vn2 = normal[(x//2)*self.L+(x//6)*self.L:(x//2)*self.L+(x//3)*self.L]
+#            tn = normal[(x//2)*self.L+(x//3)*self.L:]
+            sn = normal
+            vn1 = normal.iloc[:normal.index.size//2,:]
+            vn2 = normal.iloc[normal.index.size//2:,:]
+            tn = normal.iloc[normal.index.size//2:,:]
             # size of va:ta == 1:3 (self defined)
-            y = int(anomaly.shape[0]/self.L)
-            va = anomaly[:(y//4)*self.L]
-            ta = anomaly[(y//4)*self.L:]
-            
+#            y = int(anomaly.shape[0]/self.L)
+#            va = anomaly[:(y//4)*self.L]
+#            ta = anomaly[(y//4)*self.L:]
+            va = anomaly
+            ta = anomaly
+
             return sn,vn1,vn2,tn,va,ta
             
         
