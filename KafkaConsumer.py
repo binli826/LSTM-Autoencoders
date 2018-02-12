@@ -48,7 +48,7 @@ with open(class_label_file) as file:
     line = file.readline()
     class_labels = pd.Series(line.split(","),name="label")
     class_labels = class_labels[class_labels!="normal"].reset_index(drop=True)
-class_pred_relation = pd.DataFrame(np.zeros(class_labels.size*2).reshape(-1,2),columns=['a_as_n','a_as_a'])# two columns for a_as_n  and a_as_a
+class_pred_relation = pd.DataFrame(np.zeros(class_labels.size*2).reshape(-1,2),columns=['False alarm','True alarm'])# two columns for a_as_n  and a_as_a
 class_pred_relation = pd.concat((class_labels,class_pred_relation),axis=1)
 class_pred_relation.label = class_pred_relation.label.apply(str)
 
@@ -197,8 +197,11 @@ def prediction(stop_event,results_list):
 
 def drawing():             
     global class_pred_relation  
-    class_pred_relation.iloc[:,1:].plot.bar()
+    class_pred_relation.iloc[:,1:].plot.bar(figsize=(13,6))
     plt.xticks(class_pred_relation.index, class_pred_relation.label, rotation='vertical')
+    plt.title("Prediction statistic according to class label")
+    plt.xlabel("Anomalous classes")
+    plt.ylabel("Count")
     plt.show()
     
     
