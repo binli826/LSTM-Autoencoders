@@ -7,9 +7,10 @@ Created on Fri Feb  9 15:53:36 2018
 import numpy as np
 import pandas as pd
 import sys
+import tensorflow as tf
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
-
+from ReTrainParaHelper import ReTrainParaHelper
 class EncDecAD_ReTrain(object):
     
     def __init__(self, sn,vn1,vn2,tn,va,ta,):
@@ -23,7 +24,7 @@ class EncDecAD_ReTrain(object):
         self.retrain_iteration = conf.retrain_iteration
         self.batch_num = conf.batch_num
         self.step_num = conf.step_num
-        
+        self.elem_num = vn1.shape[1]
         # data seriealization
         t1 = self.sn.shape[0]//self.step_num
         t2 = self.va.shape[0]//self.step_num
@@ -40,7 +41,7 @@ class EncDecAD_ReTrain(object):
         self.tn_list = [self.tn[self.step_num*i:self.step_num*(i+1)].as_matrix() for i in range(t5)]
         self.ta_list = [self.ta[self.step_num*i:self.step_num*(i+1)].as_matrix() for i in range(t6)]
         
-    def continue_training(self,sess,loss_, train_,p_input,p_is_training):
+    def continue_training(self,sess,loss_, train_,p_input,p_inputs,p_is_training,input_,output_):
         loss = []
         for i in range(self.retrain_iteration):
             data =[]
@@ -55,4 +56,10 @@ class EncDecAD_ReTrain(object):
         pd.Series(loss).plot(title="Loss")
         
         
-    
+        # mu & sigma & threshold
+        
+        para = ReTrainParaHelper(self.vn1_list,self.vn2_list,self.va_list,self.batch_num,self.step_num,self.elem_num)
+        mu, sigma = para.mu_and_sigma(sess,input_, output_,p_input, p_is_training)
+        threshold = para.get_threshold(mu,sigma,sess,input_, output_,p_input, p_is_training)
+        print("Threshold:%.3f"%threshold)
+        return mu,sigma,threshold

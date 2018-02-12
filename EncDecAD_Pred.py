@@ -44,14 +44,17 @@ class EncDecAD_Pred(object):
         return input_,output_,p_input,p_is_training,loss_,train_,mu,sigma,threshold
         
     def predict(self,dataset,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta=0.5):
-            inputs = []
-            predictions = []
+
             anomaly_scores = []
-            anomaly_scores_sub = []
+            
+            elem_num = dataset.shape[1]
             for count in range(dataset.shape[0]//self.conf.batch_num//self.conf.step_num):
+                inputs = []
+                predictions = []
+                anomaly_scores_sub = []
                 data = np.array(dataset[count*self.conf.batch_num*self.conf.step_num:
                                 (count+1)*self.conf.batch_num*self.conf.step_num])
-                data = data.reshape((self.conf.batch_num,self.conf.step_num,-1)) #**********#
+                data = data.reshape((self.conf.batch_num,self.conf.step_num,elem_num)) #**********#
                 (input_n, output_n) = sess.run([input_, output_], {p_input: data, p_is_training: False})
                 inputs.append(input_n)
                 predictions.append(output_n)
@@ -80,9 +83,18 @@ class EncDecAD_Pred(object):
             ax.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
             anomaly_scores = pd.Series(anomaly_scores)
             
+            #data within the following boundary will be collected in the retrain buffer
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])*10 
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])/10 
+
+
             plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score",s=2)
             bar = threshold*np.ones(anomaly_scores.size)
+            up = upper_bound*np.ones(anomaly_scores.size)
+            low = lower_bound*np.ones(anomaly_scores.size)
             pd.Series(bar).plot(label="Threshold")
+            pd.Series(up).plot(label="Upper bound",c="y")
+            pd.Series(low).plot(label="Lower Bound",c="y")
             plt.legend(loc=2)
             plt.show()
             plt.close(fig)
@@ -90,12 +102,13 @@ class EncDecAD_Pred(object):
             assert len(list(label))==len(list(pred)), "label(%d) and pred(%d) have different size."%(len(list(label)),len(list(pred)))
             tn, fp, fn, tp = confusion_matrix(list(label), list(pred),labels=[1,0]).ravel() # 0 is positive, 1 is negative
             print("Label sum, Pred sum:\n",sum(label),sum(pred))
-#            #targets
-#            tp = np.array(abnormal_score)[np.array(abnormal_score)>threshold].size
-#            fp = len(abnormal_score)-tp
-#            fn = np.array(normal_score)[np.array(normal_score)>threshold].size
-#            tn = len(normal_score)- fn
             
+            alarm_accuracy = tn/(fn+tn)
+            false_alarm = fn
+            alarm_recall = tn/(tn+fp) if (tn+fp)!=0 else -1
+            results = [alarm_accuracy,false_alarm,alarm_recall]
+            
+            print("alarm_accuracy : %d\nfalse_alarm : %d\nalarm_recall : %.f\n"%(alarm_accuracy,false_alarm,alarm_recall))
             ''' 
             P = tp/(tp+fp)
             R = tp/(tp+fn)
@@ -104,11 +117,9 @@ class EncDecAD_Pred(object):
             print("Fbeta: %.3f"%fbeta)
             '''
             # return hard examples for model retraining
-            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold]) 
-            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold]) 
-
+#            a_s_o = [anomaly_scores[self.conf.batch_num*i] for i in range(anomaly_scores.shape[0]//self.conf.batch_num)]
             hard_exaple_window_index = anomaly_scores.between(lower_bound,upper_bound,inclusive=True)
             
-            return hard_exaple_window_index
+            return hard_exaple_window_index,results
             
     
