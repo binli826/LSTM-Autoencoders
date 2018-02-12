@@ -104,12 +104,14 @@ class EncDecAD_Pred(object):
             tn, fp, fn, tp = confusion_matrix(list(label), list(pred),labels=[1,0]).ravel() # 0 is positive, 1 is negative
             print("Label sum, Pred sum:\n",sum(label),sum(pred))
             
-            alarm_accuracy = tn/(fn+tn) if (fn+tn)!=0 else -1
-            false_alarm = fn
-            alarm_recall = tn/(tn+fp) if (tn+fp)!=0 else -1
+            alarm_accuracy = tn/(fn+tn) if (fn+tn)!=0 else 1.1  
+            false_alarm = fn/(fn+tn) if (fn+tn)!=0 else -0.1
+            alarm_recall = tn/(tn+fp) if (tn+fp)!=0 else 1.1
             results = [alarm_accuracy,false_alarm,alarm_recall,pred]
-            
-            print("alarm_accuracy : %d\nfalse_alarm : %d\nalarm_recall : %.f\n"%(alarm_accuracy,false_alarm,alarm_recall))
+            print("alarm_accuracy : ",alarm_accuracy)
+            print("false_alarm : ",false_alarm)
+            print("alarm_recall : ",alarm_recall)
+#            print("alarm_accuracy : %d\nfalse_alarm : %d\nalarm_recall : %.f\n"%(alarm_accuracy,false_alarm,alarm_recall))
             ''' 
             P = tp/(tp+fp)
             R = tp/(tp+fn)

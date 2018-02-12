@@ -40,8 +40,13 @@ consumer = KafkaConsumer(kafka_topic,
 consumer.poll()
 #go to end of the stream
 consumer.seek_to_end()
+consumer.seek_to_beginning()
 dataframe = pd.DataFrame()
 lock = threading.BoundedSemaphore(value=1)
+
+index = pd.Series()
+results_list = []
+retrain_index_list = []
 
 # use for store relation between pred and lables
 with open(class_label_file) as file:
@@ -93,9 +98,12 @@ def read_block_from_queue(q,stop_event):
         else :
             time.sleep(0.5)
             
-def prediction(stop_event,results_list):
+def prediction(stop_event):
     global dataframe
     global class_pred_relation
+    global index
+    global results_list
+    global retrain_index_list 
     print("Thread: prediction\n\n")
     pred = EncDecAD_Pred(conf)
     local_preprocessing = LocalPreprocessing(conf.column_name_file ,conf.step_num)
@@ -145,8 +153,13 @@ def prediction(stop_event,results_list):
                         else:  # a_as_n
                             i = class_pred_relation[class_pred_relation.label == class_list[p]].index
                             class_pred_relation.iloc[i,-2] += 1                  
+                    results[3] = index
+                     #[index,alarm_accuracy,false_alarm,alarm_recall,pred]
+                    result_df = pd.concat((results[3],pd.Series(results[0]*np.ones(results[3].size)),
+                                           pd.Series(results[1]*np.ones(results[3].size)),
+                                           pd.Series(results[2]*np.ones(results[3].size))),axis=1)
                     
-                    results_list.append(results)
+                    results_list.append(result_df)
                     # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
                     #hard examples from the original dataframe 
                     buffer.append(lpdf.loc[hard_example_window_index])
@@ -173,6 +186,7 @@ def prediction(stop_event,results_list):
                             print("Re-Training Model...")
                             print("sn(%d), vn1(%d), vn2(%d), va(%d) batches."%(sn.index.size//step_num//batch_num,vn1.index.size//step_num//batch_num,vn2.index.size//step_num//batch_num,va.index.size//step_num//batch_num))
                             index_of_data_for_retrain = [i.iloc[:,0] for i in [sn,vn1,vn2,tn,va,ta]]
+                            retrain_index_list += index_of_data_for_retrain
 #                            for df_for_retrain in [sn,vn1,vn2,tn,va,ta]:
 #                                df_for_retrain = df_for_retrain.iloc[:,1:]                        
                             sn = sn.drop(sn.columns[[0]],axis=1)
@@ -196,22 +210,53 @@ def prediction(stop_event,results_list):
                     lock.release()
 
 def drawing():             
-    global class_pred_relation  
+    global class_pred_relation 
+    global index
+    global results_list
+    global retrain_index_list
     class_pred_relation.iloc[:,1:].plot.bar(figsize=(13,6))
     plt.xticks(class_pred_relation.index, class_pred_relation.label, rotation='vertical')
     plt.title("Prediction statistic according to class label")
     plt.xlabel("Anomalous classes")
     plt.ylabel("Count")
     plt.show()
+    plt.close()
     
+
+    result = pd.concat(results_list,axis=0).reset_index(drop=True)
+    if len(retrain_index_list) !=0:
+        retrain_index = pd.concat(retrain_index_list,axis=0).reset_index(drop=True)
+    else:
+        retrain_index = pd.Series([])
+    print("Min index",min(result.iloc[:,result.columns[0]]))
+    print("Max index",max(result.iloc[:,result.columns[0]]))
+    print("result shape",result.shape)
+    result = result.set_index(result.iloc[:,0]).iloc[:,1:]
+    print("result shape",result.shape)
+    result.columns = ['Alarm accuracy','False alarm','Alarm recall']
+    
+    fig,ax = plt.subplots(1,1)
+    fig.set_size_inches(18,6)
+
+    ax.fill_between(x=retrain_index.as_matrix(),y1=np.ones(retrain_index.size)*(-0.5),y2=np.ones(retrain_index.size)*(-0.1),label="Data for retraining",color="y")
+    ax.plot(result.index,result.iloc[:,0],label="Alarm accuracy")
+    ax.plot(result.index,result.iloc[:,1],label="False alarm")
+    ax.plot(result.index,result.iloc[:,2],label="Alarm recall")
+#    result.plot()
+    plt.legend()
+    plt.title("Prediction performance")
+    plt.xlabel("Index")
+    
+    plt.show()
+    plt.close()
     
 def main():
     q = queue.Queue()
     stop_event = threading.Event()
-    results_list = []
+    
     write = threading.Thread(target=block_generator2queue, name='WriteThread',args=(q,stop_event,))
     read = threading.Thread(target=read_block_from_queue, name='ReadThread',args=(q,stop_event,))
-    predict = threading.Thread(target=prediction, name='Prediction',args=(stop_event,results_list))
+    predict = threading.Thread(target=prediction, name='Prediction',args=(stop_event,))
     draw = threading.Thread(target=drawing, name='Plotting',args=())
     try:
         
@@ -229,6 +274,7 @@ def main():
         
 if __name__=="__main__":
     main()
+
 
     
 
