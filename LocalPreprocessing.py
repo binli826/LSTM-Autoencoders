@@ -26,7 +26,8 @@ class LocalPreprocessing(object):
 
         
     def run(self,dataset, for_training):
-        df = dataset
+        df = dataset.iloc[:,1:]
+        df_index = dataset.iloc[:,0]
         assert len(self.col_names) == df.shape[1], "Length inconsistant: col_names(%d), df.columns(%d)"%(len(self.col_names), df.shape[1])
         df.columns = self.col_names
         label = df.iloc[:,-1]
@@ -61,7 +62,7 @@ class LocalPreprocessing(object):
             n_list = []
             a_list = []
             temp = []
-            
+            data = pd.concat((df_index,data),axis=1)
             # for training set split, considering only the continous data points with in a length L window
             for index, row in data.iterrows():
                 if len(temp) ==self.L:

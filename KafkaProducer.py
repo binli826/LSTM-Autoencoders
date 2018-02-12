@@ -35,9 +35,12 @@ for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
     if count in range(160,320): # for the KDD dataset, skip the middel part where lies continuous anomaly points
         continue
     for index,row in chunk.iterrows():
-        message = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()
+        prefix = (str(index)+",").encode()
+        suffix = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()
+        message = prefix+suffix
         producer.send('kdd99stream', message)
         print(message)
+        
         time.sleep(0.01)
 
         

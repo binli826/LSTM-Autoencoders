@@ -24,4 +24,4 @@ class Conf_Prediction_KDD99(object):
         self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_kdd99_v1_para.ckpt.meta"
         self.decode_without_input =  False
         self.column_name_file = "C:/Users/Bin/Documents/Datasets/KDD99/columns.txt"
-        
+        self.class_label_path = "C:/Users/Bin/Documents/Datasets/KDD99/classes.txt"
