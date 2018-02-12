@@ -50,7 +50,7 @@ with open(class_label_file) as file:
     class_labels = class_labels[class_labels!="normal"].reset_index(drop=True)
 class_pred_relation = pd.DataFrame(np.zeros(class_labels.size*2).reshape(-1,2),columns=['a_as_n','a_as_a'])# two columns for a_as_n  and a_as_a
 class_pred_relation = pd.concat((class_labels,class_pred_relation),axis=1)
-
+class_pred_relation.label = class_pred_relation.label.apply(str)
 
 def block_generator2queue(q,stop_event):
     
@@ -144,10 +144,7 @@ def prediction(stop_event,results_list):
                             class_pred_relation.iloc[i,-1] += 1 
                         else:  # a_as_n
                             i = class_pred_relation[class_pred_relation.label == class_list[p]].index
-                            class_pred_relation.iloc[i,-2] += 1
-                           
-                    print(class_pred_relation)
-                    
+                            class_pred_relation.iloc[i,-2] += 1                  
                     
                     results_list.append(results)
                     # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
@@ -198,8 +195,13 @@ def prediction(stop_event,results_list):
                     dataframe = pd.DataFrame()
                     lock.release()
 
-              
-              
+def drawing():             
+    global class_pred_relation  
+    class_pred_relation.iloc[:,1:].plot.bar()
+    plt.xticks(class_pred_relation.index, class_pred_relation.label, rotation='vertical')
+    plt.show()
+    
+    
 def main():
     q = queue.Queue()
     stop_event = threading.Event()
@@ -207,7 +209,7 @@ def main():
     write = threading.Thread(target=block_generator2queue, name='WriteThread',args=(q,stop_event,))
     read = threading.Thread(target=read_block_from_queue, name='ReadThread',args=(q,stop_event,))
     predict = threading.Thread(target=prediction, name='Prediction',args=(stop_event,results_list))
-   
+    draw = threading.Thread(target=drawing, name='Plotting',args=())
     try:
         
         write.start()
@@ -217,6 +219,8 @@ def main():
         while 1:
             time.sleep(.1)
     except (KeyboardInterrupt,SystemExit):
+        draw.start()
+        draw.join()
         stop_event.set()
         print("Threads closed.")
         
