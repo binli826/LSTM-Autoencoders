@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
-
+import time
 
 class EncDecAD_Pred(object):
     
@@ -43,7 +43,7 @@ class EncDecAD_Pred(object):
         threshold = sess.run(tensor_threshold)
         return input_,output_,p_input,p_is_training,loss_,train_,mu,sigma,threshold
         
-    def predict(self,dataset,df_index,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta=0.5):
+    def predict(self,dataset,df_index_,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta=0.5):
 
             anomaly_scores = []
             
@@ -84,8 +84,8 @@ class EncDecAD_Pred(object):
             anomaly_scores = pd.Series(anomaly_scores)
             
             #data within the following boundary will be collected in the retrain buffer
-            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])*10 
-            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])/10 
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold]) 
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])
 
             plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score",s=2)
 #            plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score",s=2)
@@ -96,7 +96,12 @@ class EncDecAD_Pred(object):
             pd.Series(up).plot(label="Upper bound",c="y")
             pd.Series(low).plot(label="Lower Bound",c="y")
             plt.legend(loc=2)
-#            plt.xticks( [df_index[loc*100] for loc in range(df_index.size//100)] )
+            plt.ylabel("Anomaly score")
+#            plt.xlabel("Indices(Contrains values from index "+str(df_index_[0])+" to "+str(df_index_[-1]))
+            plt.xlabel("Indices(Contrains values from index "+str(min(df_index_))+" to "+str(max(df_index_)))
+            plt.title("Real-time prediction")
+            
+            plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/Predictions/"+str(int(time.time()))+".png")
             plt.show()
             plt.close(fig)
             
@@ -104,9 +109,9 @@ class EncDecAD_Pred(object):
             tn, fp, fn, tp = confusion_matrix(list(label), list(pred),labels=[1,0]).ravel() # 0 is positive, 1 is negative
             print("Label sum, Pred sum:\n",sum(label),sum(pred))
             
-            alarm_accuracy = tn/(fn+tn) if (fn+tn)!=0 else 1.1  
-            false_alarm = fn/(fn+tn) if (fn+tn)!=0 else -0.1
-            alarm_recall = tn/(tn+fp) if (tn+fp)!=0 else 1.1
+            alarm_accuracy = tn/(fn+tn) if (fn+tn)!=0 else -0.1  
+            false_alarm = fn#/(fn+tn) if (fn+tn)!=0 else -0.1
+            alarm_recall = tn/(tn+fp) if (tn+fp)!=0 else 1
             results = [alarm_accuracy,false_alarm,alarm_recall,pred]
             print("alarm_accuracy : ",alarm_accuracy)
             print("false_alarm : ",false_alarm)
@@ -121,7 +126,7 @@ class EncDecAD_Pred(object):
             '''
             # return hard examples for model retraining
 #            a_s_o = [anomaly_scores[self.conf.batch_num*i] for i in range(anomaly_scores.shape[0]//self.conf.batch_num)]
-            hard_exaple_window_index = anomaly_scores.between(lower_bound,upper_bound,inclusive=True)
+            hard_exaple_window_index = anomaly_scores.between(lower_bound/5,upper_bound*5,inclusive=True)
             
             return hard_exaple_window_index,results
             
