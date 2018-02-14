@@ -235,7 +235,9 @@ def drawing():
     plt.xlabel("Anomalous classes")
     plt.ylabel("Count")
     
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/Prediction"+str(int(time.time()))+".png")
+    t = str(int(time.time()))
+    class_pred_relation.to_csv("C:/Users/Bin/Desktop/Thesis/Plotting/3/Prediction_relation"+t+".csv",header=None,index=None)
+    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/Prediction"+t+".png")
     plt.show()
     plt.close()
     
@@ -270,7 +272,10 @@ def drawing():
     plt.title("Anomaly recall")
     plt.xlabel("Index")
     
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/Recall"+str(int(time.time()))+".png")
+    t = str(int(time.time()))
+    result.iloc[:,1:].to_csv("C:/Users/Bin/Desktop/Thesis/Plotting/3/Prediction_performance"+t+".csv",header=None,index=None)
+
+    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/Recall"+t+".png")
     plt.show()
     plt.close()
     
@@ -288,12 +293,15 @@ def drawing():
     plt.title("#False Alarm")
     plt.ylabel("Count")
     plt.xlabel("Index")
-   
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/FalseAlarm"+str(int(time.time()))+".png")
+    
+    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/FalseAlarm"+t+".png")
     plt.show()
     plt.close()
     
-    
+    count = 0
+    for x in results_list:
+        count += x.index.size
+    print("Made prediction on",count,"examples.")
     
 def main():
     q = queue.Queue()

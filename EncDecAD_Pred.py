@@ -101,7 +101,10 @@ class EncDecAD_Pred(object):
             plt.xlabel("Indices(Contrains values from index "+str(min(df_index_))+" to "+str(max(df_index_)))
             plt.title("Real-time prediction")
             
-            plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/Predictions/"+str(int(time.time()))+".png")
+            statistic = pd.concat((df_index_,anomaly_scores,pd.Series(pred),pd.Series(upper_bound),pd.Series(lower_bound),pd.Series(bar)),axis=1).reset_index(drop=True)
+            t = str(int(time.time()))
+            statistic.to_csv("C:/Users/Bin/Desktop/Thesis/Plotting/3/Predictions/"+t+".csv")
+            plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/Predictions/"+t+".png")
             plt.show()
             plt.close(fig)
             

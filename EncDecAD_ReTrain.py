@@ -7,7 +7,6 @@ Created on Fri Feb  9 15:53:36 2018
 import numpy as np
 import pandas as pd
 import sys
-import tensorflow as tf
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
 from ReTrainParaHelper import ReTrainParaHelper
@@ -63,3 +62,6 @@ class EncDecAD_ReTrain(object):
         threshold = para.get_threshold(mu,sigma,sess,input_, output_,p_input, p_is_training)
         print("Threshold:%.3f"%threshold)
         return mu,sigma,threshold
+    
+#    def start_from_scratch(self,sess,)
+    
