@@ -32,7 +32,7 @@ class LocalPreprocessing(object):
         df.columns = self.col_names
         label = df.iloc[:,-1]
         df = df.iloc[:,:-1]
-        continuous = df.iloc[:,np.array(pd.Series(self.col_types)=="continuous")]
+        continuous = df.iloc[:,np.array(pd.Series(self.col_types)=="continuous")] # 34 continuous features
      
         grundtruth = np.zeros(label.size)
         grundtruth[np.array(label)!="normal"] = 1

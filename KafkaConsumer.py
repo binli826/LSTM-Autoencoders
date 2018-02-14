@@ -235,7 +235,7 @@ def drawing():
     plt.xlabel("Anomalous classes")
     plt.ylabel("Count")
     
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/Prediction"+str(int(time.time()))+".png")
+    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/Prediction"+str(int(time.time()))+".png")
     plt.show()
     plt.close()
     
@@ -270,7 +270,7 @@ def drawing():
     plt.title("Anomaly recall")
     plt.xlabel("Index")
     
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/Recall"+str(int(time.time()))+".png")
+    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/Recall"+str(int(time.time()))+".png")
     plt.show()
     plt.close()
     
@@ -278,6 +278,7 @@ def drawing():
     fig,ax = plt.subplots(1,1)
     fig.set_size_inches(12,6)
     ax.scatter(result.index,result.iloc[:,1],label="False alarm",c='r',s=0.1)
+    # retrain positions
     lines = [-0.2,1.1]*len(retrain_apply_indices)
     for i in range(len(retrain_apply_indices)):
         ys = [lines[i*2],lines[1+i*2]]
@@ -288,7 +289,7 @@ def drawing():
     plt.ylabel("Count")
     plt.xlabel("Index")
    
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/FalseAlarm"+str(int(time.time()))+".png")
+    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/FalseAlarm"+str(int(time.time()))+".png")
     plt.show()
     plt.close()
     

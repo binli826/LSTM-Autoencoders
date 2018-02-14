@@ -101,7 +101,7 @@ class EncDecAD_Pred(object):
             plt.xlabel("Indices(Contrains values from index "+str(min(df_index_))+" to "+str(max(df_index_)))
             plt.title("Real-time prediction")
             
-            plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/Predictions/"+str(int(time.time()))+".png")
+            plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/2/Predictions/"+str(int(time.time()))+".png")
             plt.show()
             plt.close(fig)
             
