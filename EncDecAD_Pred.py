@@ -48,7 +48,7 @@ class EncDecAD_Pred(object):
         
             print('Prediction report :')
             fig, (ax1,ax2,ax3,ax4,ax5,ax6) = plt.subplots(6,1,figsize=(15,25))
-            plt.subplots_adjust( hspace=0.5)
+            plt.subplots_adjust( hspace=0.7)
             plt.title("Prediction on KDD99 dataset index between "+str(min(df_index_))+" to "+str(max(df_index_)))
             ax1.set_title("Prediction")
             ax1.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
@@ -147,7 +147,7 @@ class EncDecAD_Pred(object):
             
             ax5.set_title("False alarm")
             fa = pd.DataFrame(false_alarm_list)
-            ax5.plot(fa.iloc[:,1])
+            ax5.plot(range(fa.shape[0]),fa.iloc[:,1])
             ax5.set_xticklabels(fa.iloc[:,0], rotation=45)
             ax5.set_xlabel("Indices")
             ax5.set_ylabel("False alarm count")
@@ -157,10 +157,11 @@ class EncDecAD_Pred(object):
             ax6.set_title("Anomaly recall")
             
             ar = pd.DataFrame(anomaly_recall_list)
-            ax6.plot(ar.iloc[:,1])
+            ax6.plot(range(ar.shape[0]),ar.iloc[:,1])
             ax6.set_xticklabels(ar.iloc[:,0], rotation=45)
             ax6.set_xlabel("Indices")
             ax6.set_ylabel("Anomaly recall")
+            ax6.set_ylim([0,1.1])
             
                 
             

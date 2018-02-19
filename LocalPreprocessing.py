@@ -22,8 +22,8 @@ class LocalPreprocessing(object):
             self.col_names.append(col.split(': ')[0].strip()) # size ==41
             self.col_types.append(col.split(': ')[1])
         self.col_names.append("label")
-        self.L = step_num
-
+#        self.L = step_num
+        self.L = 3
         
     def run(self,dataset, for_training):
         df = dataset.iloc[:,1:]
@@ -86,7 +86,7 @@ class LocalPreprocessing(object):
             anomaly = data.iloc[np.array(a_list),:-2]
             
 #            n_labels = data.iloc[np.array(n_list),-2]
-            a_labels = data.iloc[np.array(a_list),:-2]
+            a_labels = data.iloc[np.array(a_list),-2]
             # size of sn:vn1:vn2:tn == 3:1:1:4 (self defined)
 #            x = int(normal.shape[0]/self.L)
 #            sn = normal[:(x//2)*self.L]
@@ -105,10 +105,10 @@ class LocalPreprocessing(object):
 #            ta = anomaly[(y//4)*self.L:]
             va = anomaly.iloc[0:tmp*2,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
             ta = anomaly.iloc[va.index.size:,:]
-            class_labels = []
-            for nd in [sn,vn1,vn2,tn]:
-                class_labels.append(np.array(['normal' for _ in range(nd.index.size)]))
-            class_labels.append(a_labels.as_matrix)
+            class_labels = ['normal' for _ in range(sn.shape[0]+vn1.shape[0]+vn2.shape[0]+tn.shape[0])]
+
+            class_labels += list(a_labels)
+            
             return sn,vn1,vn2,tn,va,ta,class_labels
             
         

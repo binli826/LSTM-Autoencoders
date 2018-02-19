@@ -196,10 +196,12 @@ def prediction(stop_event):
                             data_for_retrain = data_for_retrain.iloc[:data_for_retrain.index.size-data_for_retrain.index.size%batch_num,:]#buffer[0].shape[1]]#.....................
                             sn,vn1,vn2,tn,va,ta,class_labels = local_preprocessing.run(data_for_retrain, for_training = True)
                             
-                            if min([x.index.size for x in [sn,vn1,vn2,va,tn,ta]])<batch_num*step_num:
+                            if min([x.index.size for x in [sn,vn1,vn2,va]])<batch_num*step_num:
                                 
                                 print("Not enough normal or anomaly data for retraining, still waiting for more data.")
-                                print("sn(%d), vn1(%d), vn2(%d), va(%d) batches."%(sn.index.size//step_num//batch_num,vn1.index.size//step_num//batch_num,vn2.index.size//step_num//batch_num,va.index.size//step_num//batch_num))
+#                                print("sn(%d), vn1(%d), vn2(%d), va(%d) batches."%(sn.index.size//step_num//batch_num,vn1.index.size//step_num//batch_num,vn2.index.size//step_num//batch_num,va.index.size//step_num//batch_num))
+                                print("sn(%d), vn1(%d), vn2(%d), va(%d)."%(sn.index.size,vn1.index.size,vn2.index.size,va.index.size))
+                                print("data_for_retrain size: ",data_for_retrain.index.size)
                                 print("Retrain Buffer: %d/%d.\n"%(buffer_data_len,MIN_RETRAIN_BLOCK_NUM*batch_num))
                                 dataframe = pd.DataFrame()                                
                                 continue
@@ -242,14 +244,14 @@ def retrain_plotting(class_labels,loss):
     global threshold_list
     
     fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(13,13))
-    plt.subplots_adjust(wspace=0.5, hspace=0.5)
+    plt.subplots_adjust(hspace=0.5)
     plt.title("Retrain report")
     
     #ax1: threshold changes
     thresholds = pd.DataFrame(threshold_list)
-    ax1 = thresholds.set_index(thresholds.iloc[:,0]).iloc[:,1].plot()
-    ax1.set_xticklabels(thresholds.iloc[:,0], rotation='vertical')
     ax1.set_title("Threshold changing according to model update")
+    ax1.plot(range(thresholds.index.size),thresholds.iloc[:,1])
+    ax1.set_xticklabels(thresholds.iloc[:,0], rotation='vertical')
     ax1.set_xlabel("Index")
     ax1.set_ylabel("Threshold")
     
@@ -257,21 +259,28 @@ def retrain_plotting(class_labels,loss):
     ax2.set_title("Retrain dataset distribution")
     ax2.set_xlabel("Subsets")
     ax2.set_ylabel("Count")
-    ax2.bar([0],[class_labels[0].shape[0]],tick_label=["normal"])
-#    ax2.bar([0],[class_labels[0].shape[0]*0.8],color='b',label='train')
-    pos = [1,1-0.2,1+0.2,1-0.4,1+0.4,1-0.6,1+0.6,1-0.8,1+0.8,1+1.0]
-    count = 0
-    for lab in pd.Series(class_labels[1]).unique():
-        ax2.bar([pos[count]],[class_labels[1].count(lab)],width=0.2,align='center',tick_label=str(lab))
-        count+=1
+    foo = class_labels
+    label_counts = [class_labels.count(l) for l in  pd.Series(class_labels).unique()]
+    ax2.bar(range(len(label_counts)),label_counts)
+    ax2.set_xticklabels(list(pd.Series(class_labels).unique()), rotation='vertical')
+   
+    rects = ax2.patches
+    for rect in rects:
+        y_value = rect.get_height()
+        x_value = rect.get_x() + rect.get_width() / 2
+
+        ax2.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
+            ha='center', va='bottom')
         
     #ax3: retrain error
-    ax3 = pd.Series(loss).plot(title="Loss")
-    
+    ax3.plot(loss)
+    ax3.set_title("Retrain loss")
+    ax3.set_xlabel("Iteration")
+    ax3.set_ylabel("SSE")
     
     save_path = conf.plot_savepath
     t = str(int(time.time()))
-    plt.savefig(save_path+"Prediction"+t+".png")
+    plt.savefig(save_path+"Retrain"+t+".png")
     plt.show()
     plt.close()
     
