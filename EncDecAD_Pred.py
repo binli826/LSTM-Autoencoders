@@ -42,8 +42,137 @@ class EncDecAD_Pred(object):
         sigma = sess.run(tensor_sigma)
         threshold = sess.run(tensor_threshold)
         return input_,output_,p_input,p_is_training,loss_,train_,mu,sigma,threshold
+    
+    
+    def plotting(self,anomaly_scores,threshold,df_index_,pred,label,buffer_info,class_list,hard_example_window_index,upper_bound,lower_bound,false_alarm_list,anomaly_recall_list):
         
-    def predict(self,dataset,df_index_,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,beta=0.5):
+            print('Prediction report :')
+            fig, (ax1,ax2,ax3,ax4,ax5,ax6) = plt.subplots(6,1,figsize=(15,25))
+            plt.subplots_adjust( hspace=0.5)
+            plt.title("Prediction on KDD99 dataset index between "+str(min(df_index_))+" to "+str(max(df_index_)))
+            ax1.set_title("Prediction")
+            ax1.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
+
+            a_set_index = anomaly_scores.index * label.as_matrix()
+            a_set_index = a_set_index[a_set_index!=0]
+            a_set_value = anomaly_scores[a_set_index]
+            ax1.scatter(a_set_index,a_set_value,color="red",label="Anomaly score(Grund truth=1)",s=2)
+            
+            n_set_index = anomaly_scores.index * (1-label.as_matrix())
+            n_set_index = n_set_index[n_set_index != 0]
+            n_set_value = anomaly_scores[n_set_index]
+            ax1.scatter(n_set_index,n_set_value,color="black",label="Anomaly score(Grund truth=0)",s=2)
+            
+            bar = threshold*np.ones(anomaly_scores.size)
+            up = upper_bound*np.ones(anomaly_scores.size)
+            low = lower_bound*np.ones(anomaly_scores.size)
+            ax1.plot(bar,label="Threshold")
+            ax1.plot(up,label="Upper bound",c="y")
+            ax1.plot(low,label="Lower Bound",c="y")
+#            pd.Series(bar).plot(label="Threshold")
+#            pd.Series(up).plot(label="Upper bound",c="y")
+#            pd.Series(low).plot(label="Lower Bound",c="y")
+            ax1.legend(loc=2)
+            ax1.set_ylabel("Anomaly score")
+            ax1.set_xlabel("Index (Contrains values from index "+str(min(df_index_))+" to "+str(max(df_index_))+")")
+           
+            
+            ax2.set_title("Dataset used for prediction")
+            count = []
+            labels = []
+            for class_label in class_list.unique():
+                count.append(class_list[class_list == class_label].size)
+                labels.append(class_label)
+            if len(labels) == 1:
+                ax2.bar(range(len(labels)),count,width=0.4,tick_label=labels,color="blue")
+            else:
+                ax2.bar(range(len(labels)),count,width=0.4,tick_label=labels,color="blue")
+            ax2.set_xlabel("Classes")
+            ax2.set_ylabel("Count")
+            ax2.set_ylim([0,max(count)*1.1])
+            
+            rects = ax2.patches
+            for rect in rects:
+                y_value = rect.get_height()
+                x_value = rect.get_x() + rect.get_width() / 2
+
+                ax2.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
+                    ha='center', va='bottom')                      
+
+            
+            ax3.set_title("Hard examples' distribution")
+            
+            hard_list = class_list.loc[hard_example_window_index]
+            count = []
+            labels = []
+            for class_label in hard_list.unique():
+                count.append(hard_list[hard_list == class_label].size)
+                labels.append(class_label)
+            if len(labels) ==1:
+                ax3.bar(range(len(labels)),count,width=0.4,tick_label=labels)
+            else:
+                ax3.bar(range(len(labels)),count,width=0.4,tick_label=labels)
+            ax3.set_xlabel("Classes")
+            ax3.set_ylabel("Count")
+            count.append(1.)
+            ax3.set_ylim([0,max(count)])
+            rects = ax3.patches
+            for rect in rects:
+                y_value = rect.get_height()
+                x_value = rect.get_x() + rect.get_width() / 2
+
+                ax3.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
+                    ha='center', va='bottom')
+            
+            
+            
+            ax4.set_title("Buffer data distribution")
+            
+            buffer_normal = buffer_info[0]
+            buffer_anomaly = buffer_info[1]
+            
+            ax4.bar([0,1],[buffer_normal,buffer_anomaly],tick_label=["Normal","Anomalous"],width=0.4,align='center')
+            ax4.set_xlabel("Label")
+            ax4.set_ylabel("Count")
+            
+            ax4.set_ylim([0,max(buffer_normal,buffer_anomaly)*1.2])
+            rects = ax4.patches
+            for rect in rects:
+                y_value = rect.get_height()
+                x_value = rect.get_x() + rect.get_width() / 2
+
+                ax4.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
+                    ha='center', va='bottom')
+            
+            
+            ax5.set_title("False alarm")
+            fa = pd.DataFrame(false_alarm_list)
+            ax5.plot(fa.iloc[:,1])
+            ax5.set_xticklabels(fa.iloc[:,0], rotation=45)
+            ax5.set_xlabel("Indices")
+            ax5.set_ylabel("False alarm count")
+            
+            
+            
+            ax6.set_title("Anomaly recall")
+            
+            ar = pd.DataFrame(anomaly_recall_list)
+            ax6.plot(ar.iloc[:,1])
+            ax6.set_xticklabels(ar.iloc[:,0], rotation=45)
+            ax6.set_xlabel("Indices")
+            ax6.set_ylabel("Anomaly recall")
+            
+                
+            
+            statistic = pd.concat((df_index_,anomaly_scores,pd.Series(pred),pd.Series(upper_bound),pd.Series(lower_bound),pd.Series(bar)),axis=1).reset_index(drop=True)
+            t = str(int(time.time()))
+            statistic.to_csv(self.conf.plot_savepath+"Predictions/"+t+".csv")
+            plt.savefig(self.conf.plot_savepath+"Predictions/"+t+".png")
+            plt.show()
+            plt.close(fig)
+            
+            
+    def predict(self,dataset,df_index_,label,class_list,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,buffer_info,false_alarm_list,anomaly_recall_list,beta=0.5):
 
             anomaly_scores = []
             
@@ -78,35 +207,8 @@ class EncDecAD_Pred(object):
             
             pred = np.zeros(len(anomaly_scores))
             pred[np.array(anomaly_scores) > threshold] = 1
-            print('Predict result :')
-            fig, ax = plt.subplots(figsize=(18,5))
-            ax.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
-            anomaly_scores = pd.Series(anomaly_scores)
             
-            #data within the following boundary will be collected in the retrain buffer
-            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold]) 
-            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])
-
-            plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score",s=2)
-#            plt.scatter(anomaly_scores.index,anomaly_scores,color="r",label="Anomaly score",s=2)
-            bar = threshold*np.ones(anomaly_scores.size)
-            up = upper_bound*np.ones(anomaly_scores.size)
-            low = lower_bound*np.ones(anomaly_scores.size)
-            pd.Series(bar).plot(label="Threshold")
-            pd.Series(up).plot(label="Upper bound",c="y")
-            pd.Series(low).plot(label="Lower Bound",c="y")
-            plt.legend(loc=2)
-            plt.ylabel("Anomaly score")
-#            plt.xlabel("Indices(Contrains values from index "+str(df_index_[0])+" to "+str(df_index_[-1]))
-            plt.xlabel("Indices(Contrains values from index "+str(min(df_index_))+" to "+str(max(df_index_)))
-            plt.title("Real-time prediction")
             
-            statistic = pd.concat((df_index_,anomaly_scores,pd.Series(pred),pd.Series(upper_bound),pd.Series(lower_bound),pd.Series(bar)),axis=1).reset_index(drop=True)
-            t = str(int(time.time()))
-            statistic.to_csv("C:/Users/Bin/Desktop/Thesis/Plotting/3/Predictions/"+t+".csv")
-            plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/Predictions/"+t+".png")
-            plt.show()
-            plt.close(fig)
             
             assert len(list(label))==len(list(pred)), "label(%d) and pred(%d) have different size."%(len(list(label)),len(list(pred)))
             tn, fp, fn, tp = confusion_matrix(list(label), list(pred),labels=[1,0]).ravel() # 0 is positive, 1 is negative
@@ -119,18 +221,18 @@ class EncDecAD_Pred(object):
             print("alarm_accuracy : ",alarm_accuracy)
             print("false_alarm : ",false_alarm)
             print("alarm_recall : ",alarm_recall)
-#            print("alarm_accuracy : %d\nfalse_alarm : %d\nalarm_recall : %.f\n"%(alarm_accuracy,false_alarm,alarm_recall))
-            ''' 
-            P = tp/(tp+fp)
-            R = tp/(tp+fn)
-            fbeta= (1+beta*beta)*P*R/(beta*beta*P+R)
-            print("tp: %.d,fp: %.d,tn: %.d,fn: %.d,\nP: %.3f,R: %.3f"%(tp,fp,tn,fn,P,R))
-            print("Fbeta: %.3f"%fbeta)
-            '''
-            # return hard examples for model retraining
-#            a_s_o = [anomaly_scores[self.conf.batch_num*i] for i in range(anomaly_scores.shape[0]//self.conf.batch_num)]
-            hard_exaple_window_index = anomaly_scores.between(lower_bound/5,upper_bound*5,inclusive=True)
+            anomaly_scores = pd.Series(anomaly_scores)
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold]) 
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])
             
-            return hard_exaple_window_index,results
+            hard_example_window_index = anomaly_scores.between(lower_bound/5,upper_bound*5,inclusive=True)
+            assert df_index_.size!=0, "prediction dataset index size is 0"
+            false_alarm_list.append([str(df_index_[0])+"-"+str(df_index_[df_index_.size-1]),false_alarm])
+            anomaly_recall_list.append([str(df_index_[0])+"-"+str(df_index_[df_index_.size-1]),alarm_recall])
+            
+            self.plotting(anomaly_scores,threshold,df_index_,pred,label,buffer_info,class_list,hard_example_window_index,
+                          upper_bound,lower_bound,false_alarm_list,anomaly_recall_list)
+            
+            return hard_example_window_index,results
             
     

@@ -8,18 +8,16 @@ import numpy as np
 import pandas as pd
 import sys
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
-from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
 from ReTrainParaHelper import ReTrainParaHelper
 class EncDecAD_ReTrain(object):
     
-    def __init__(self, sn,vn1,vn2,tn,va,ta,):
+    def __init__(self,conf, sn,vn1,vn2,tn,va,ta,):
         self.sn = sn
         self.vn1 = vn1
         self.vn2 = vn2
         self.tn = tn
         self.va = va
         self.ta = ta
-        conf = Conf_Prediction_KDD99()
         self.retrain_iteration = conf.retrain_iteration
         self.batch_num = conf.batch_num
         self.step_num = conf.step_num
@@ -61,7 +59,7 @@ class EncDecAD_ReTrain(object):
         mu, sigma = para.mu_and_sigma(sess,input_, output_,p_input, p_is_training)
         threshold = para.get_threshold(mu,sigma,sess,input_, output_,p_input, p_is_training)
         print("Threshold:%.3f"%threshold)
-        return mu,sigma,threshold
+        return mu,sigma,threshold,loss
     
 #    def start_from_scratch(self,sess,)
     

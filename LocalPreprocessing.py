@@ -84,26 +84,32 @@ class LocalPreprocessing(object):
         
             normal = data.iloc[np.array(n_list),:-2]
             anomaly = data.iloc[np.array(a_list),:-2]
-
             
+#            n_labels = data.iloc[np.array(n_list),-2]
+            a_labels = data.iloc[np.array(a_list),:-2]
             # size of sn:vn1:vn2:tn == 3:1:1:4 (self defined)
 #            x = int(normal.shape[0]/self.L)
 #            sn = normal[:(x//2)*self.L]
 #            vn1 = normal[(x//2)*self.L:(x//2)*self.L+(x//6)*self.L]
 #            vn2 = normal[(x//2)*self.L+(x//6)*self.L:(x//2)*self.L+(x//3)*self.L]
 #            tn = normal[(x//2)*self.L+(x//3)*self.L:]
-            sn = normal
-            vn1 = normal.iloc[:normal.index.size//2,:]
-            vn2 = normal.iloc[normal.index.size//2:,:]
-            tn = normal.iloc[normal.index.size//2:,:]
+            
+            tmp = normal.index.size//10 # 4:2:2:2, va.size == vn2.size
+            sn = normal.iloc[:tmp*4,:]
+            vn1 = normal.iloc[tmp*4:tmp*6,:]
+            vn2 = normal.iloc[tmp*6:tmp*8,:]
+            tn = normal.iloc[tmp*8:,:]
             # size of va:ta == 1:3 (self defined)
 #            y = int(anomaly.shape[0]/self.L)
 #            va = anomaly[:(y//4)*self.L]
 #            ta = anomaly[(y//4)*self.L:]
-            va = anomaly
-            ta = anomaly
-
-            return sn,vn1,vn2,tn,va,ta
+            va = anomaly.iloc[0:tmp*2,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
+            ta = anomaly.iloc[va.index.size:,:]
+            class_labels = []
+            for nd in [sn,vn1,vn2,tn]:
+                class_labels.append(np.array(['normal' for _ in range(nd.index.size)]))
+            class_labels.append(a_labels.as_matrix)
+            return sn,vn1,vn2,tn,va,ta,class_labels
             
         
         

@@ -50,6 +50,9 @@ index = pd.Series()
 results_list = []
 retrain_apply_indices = []
 retrain_index_list = []
+threshold_list = []
+false_alarm_list = []
+anomaly_recall_list = []
 
 # use for store relation between pred and lables
 with open(class_label_file) as file:
@@ -109,15 +112,18 @@ def prediction(stop_event):
     global retrain_apply_indices
     global retrain_index_list 
     global class_list
+    global threshold_list
     print("Thread: prediction\n\n")
     pred = EncDecAD_Pred(conf)
     local_preprocessing = LocalPreprocessing(conf.column_name_file ,conf.step_num)
     #  reload model
     sess = tf.Session()
     input_,output_,p_input,p_is_training,loss_,train_,mu,sigma,threshold= pred.reloadModel(sess)
+    threshold_list.append([0,threshold])
     p_inputs = [tf.squeeze(t, [1]) for t in tf.split(p_input, step_num, 1)]
     print("LSTMs-Autoencoder Model reloaded.")
     buffer = [] # for collecting hard examples used for retraining model
+    buffer_info = [0,0] # [normal,anomaly]
     while not stop_event.is_set():   
 #        with lock:
             lock.acquire()
@@ -144,8 +150,12 @@ def prediction(stop_event):
                     class_list = dataframe_preprocessed.iloc[:,-2]
                     # window.size == step_num
                     
-                    hard_example_window_index, results= pred.predict(dataset,index,label,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold)
+                    hard_example_window_index, results= pred.predict(dataset,index,label,class_list,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,buffer_info,false_alarm_list,anomaly_recall_list)
+                    
                     # results : [alarm_accuracy,false_alarm,alarm_recall,pred]
+                    false_alarm_list.append([str(index[0])+"-"+str(index[index.size-1]),results[1]])
+                    anomaly_recall_list.append([str(index[0])+"-"+str(index[index.size-1]),results[2]])
+                    
                     
                     # store pred & label relation
                     predictions = pd.Series(results[3])
@@ -167,6 +177,10 @@ def prediction(stop_event):
                     # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
                     #hard examples from the original dataframe 
                     buffer.append(lpdf.loc[hard_example_window_index])
+                    sub_lpdf = lpdf.loc[hard_example_window_index]
+                    if sub_lpdf.size !=0:
+                        buffer_info[0] += sub_lpdf[sub_lpdf.iloc[:,-1]=="normal"].index.size
+                        buffer_info[1] += sub_lpdf[sub_lpdf.iloc[:,-1]!="normal"].index.size
 #                    print("A df with %d rows is added to Buffer."%lpdf.index.size)
                     buffer_data_len = sum([df_.shape[0] for df_ in buffer])
                     
@@ -178,14 +192,11 @@ def prediction(stop_event):
                                     retrain_apply_indices.append(int(apply_index))
                             data_for_retrain = pd.concat(buffer,axis=0)
                             data_for_retrain.reset_index(drop=True,inplace=True)
-#                            print("data_for_retrain.shape: ",data_for_retrain.shape)
                             #retrain dataset shape: (batch_num*step_num*MIN_RETRAIN_BLOCK_NUM,elem_num)
                             data_for_retrain = data_for_retrain.iloc[:data_for_retrain.index.size-data_for_retrain.index.size%batch_num,:]#buffer[0].shape[1]]#.....................
-                            sn,vn1,vn2,tn,va,ta = local_preprocessing.run(data_for_retrain, for_training = True)
+                            sn,vn1,vn2,tn,va,ta,class_labels = local_preprocessing.run(data_for_retrain, for_training = True)
                             
-                            
-    #                        if min(sn.size,vn1.size,vn2.size,tn.size,va.size,ta.size) == 0:
-                            if min([x.index.size for x in [sn,vn1,vn2,va]])<batch_num*step_num:
+                            if min([x.index.size for x in [sn,vn1,vn2,va,tn,ta]])<batch_num*step_num:
                                 
                                 print("Not enough normal or anomaly data for retraining, still waiting for more data.")
                                 print("sn(%d), vn1(%d), vn2(%d), va(%d) batches."%(sn.index.size//step_num//batch_num,vn1.index.size//step_num//batch_num,vn2.index.size//step_num//batch_num,va.index.size//step_num//batch_num))
@@ -195,22 +206,29 @@ def prediction(stop_event):
                             
                             print("Re-Training Model...")
                             print("sn(%d), vn1(%d), vn2(%d), va(%d) batches."%(sn.index.size//step_num//batch_num,vn1.index.size//step_num//batch_num,vn2.index.size//step_num//batch_num,va.index.size//step_num//batch_num))
-                            index_of_data_for_retrain = [i.iloc[:,0] for i in [sn,vn1,vn2,tn,va,ta]]
+                            index_of_data_for_retrain = [i.iloc[:,0] for i in [sn,vn1,vn2,tn,va,ta]]                        
                             retrain_index_list += index_of_data_for_retrain
-#                            for df_for_retrain in [sn,vn1,vn2,tn,va,ta]:
-#                                df_for_retrain = df_for_retrain.iloc[:,1:]                        
+                            # check out the largest index of retrain data, as the new threshold index after retrain
+                            max_index = max(retrain_apply_indices)
+                            
+                            
                             sn = sn.drop(sn.columns[[0]],axis=1)
                             vn1 = vn1.drop(vn1.columns[[0]],axis=1)
                             vn2 = vn2.drop(vn2.columns[[0]],axis=1)
                             tn = tn.drop(tn.columns[[0]],axis=1)
                             va = va.drop(va.columns[[0]],axis=1)
                             ta = ta.drop(ta.columns[[0]],axis=1)
-                            retrain = EncDecAD_ReTrain(sn,vn1,vn2,tn,va,ta)
-                            mu_new,sigma_new,threshold_new = retrain.continue_training(sess,loss_, train_,p_input,p_inputs,p_is_training,input_,output_)
+                            retrain = EncDecAD_ReTrain(conf,sn,vn1,vn2,tn,va,ta)
+                            
+                            threshold_list.append([max_index,threshold]) ## for plotting
+                            mu_new,sigma_new,threshold_new,loss = retrain.continue_training(sess,loss_, train_,p_input,p_inputs,p_is_training,input_,output_)
+                            
                             if math.isnan(threshold_new ) == False:
                                 mu,sigma,threshold = mu_new,sigma_new,threshold_new
                             buffer.clear()
-                            drawing()
+                            buffer_info = [0,0]
+                            threshold_list.append([max_index,threshold])
+                            retrain_plotting(class_labels,loss)
                     else: 
                         
                         print("Retrain Buffer: %d/%d.\n"%(buffer_data_len,MIN_RETRAIN_BLOCK_NUM*batch_num))
@@ -220,6 +238,42 @@ def prediction(stop_event):
                     dataframe = pd.DataFrame()
                     lock.release()
 
+def retrain_plotting(class_labels,loss):
+    global threshold_list
+    
+    fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(13,13))
+    plt.subplots_adjust(wspace=0.5, hspace=0.5)
+    plt.title("Retrain report")
+    
+    #ax1: threshold changes
+    thresholds = pd.DataFrame(threshold_list)
+    ax1 = thresholds.set_index(thresholds.iloc[:,0]).iloc[:,1].plot()
+    ax1.set_xticklabels(thresholds.iloc[:,0], rotation='vertical')
+    ax1.set_title("Threshold changing according to model update")
+    ax1.set_xlabel("Index")
+    ax1.set_ylabel("Threshold")
+    
+    #ax2: retrain data distribution
+    ax2.set_title("Retrain dataset distribution")
+    ax2.set_xlabel("Subsets")
+    ax2.set_ylabel("Count")
+    ax2.bar([0],[class_labels[0].shape[0]],tick_label=["normal"])
+#    ax2.bar([0],[class_labels[0].shape[0]*0.8],color='b',label='train')
+    pos = [1,1-0.2,1+0.2,1-0.4,1+0.4,1-0.6,1+0.6,1-0.8,1+0.8,1+1.0]
+    count = 0
+    for lab in pd.Series(class_labels[1]).unique():
+        ax2.bar([pos[count]],[class_labels[1].count(lab)],width=0.2,align='center',tick_label=str(lab))
+        count+=1
+        
+    #ax3: retrain error
+    ax3 = pd.Series(loss).plot(title="Loss")
+    
+    
+    save_path = conf.plot_savepath
+    t = str(int(time.time()))
+    plt.savefig(save_path+"Prediction"+t+".png")
+    plt.show()
+    plt.close()
     
 def drawing():             
     global class_pred_relation 
@@ -227,17 +281,32 @@ def drawing():
     global results_list
     global retrain_index_list
     global retrain_apply_indices
+    global threshold_list
+    save_path = conf.plot_savepath
+    
+    #threshols changes
+    t = str(int(time.time()))
+    
+    thresholds = pd.DataFrame(threshold_list)
+    thresholds.set_index(thresholds.iloc[:,0]).iloc[:,1].plot()
+    plt.xticks(thresholds.iloc[:,0],thresholds.iloc[:,0])
+    plt.title("Threshold changing according to model update")
+    plt.xlabel("Index")
+    plt.ylabel("Threshold")
+    plt.savefig(save_path+ "Threshold"+t+".png")
+    plt.show()
+    plt.close()
 
-
+    # relationship
     class_pred_relation.iloc[:,1:].plot.bar(figsize=(13,6))
     plt.xticks(class_pred_relation.index, class_pred_relation.label, rotation='vertical')
     plt.title("Prediction statistic according to class label")
     plt.xlabel("Anomalous classes")
     plt.ylabel("Count")
     
-    t = str(int(time.time()))
-    class_pred_relation.to_csv("C:/Users/Bin/Desktop/Thesis/Plotting/3/Prediction_relation"+t+".csv",header=None,index=None)
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/Prediction"+t+".png")
+    
+    class_pred_relation.to_csv(save_path+"Prediction_relation"+t+".csv",header=None,index=None)
+    plt.savefig(save_path+"Prediction"+t+".png")
     plt.show()
     plt.close()
     
@@ -247,9 +316,7 @@ def drawing():
         retrain_index = pd.concat(retrain_index_list,axis=0).reset_index(drop=True)
     else:
         retrain_index = pd.Series([])
-#    print("Min index",min(result.iloc[:,result.columns[0]]))
-#    print("Max index",max(result.iloc[:,result.columns[0]]))
-#    print("result shape",result.shape)
+
     result = result.set_index(result.iloc[:,0]).iloc[:,1:]
     print("result shape",result.shape)
     result.columns = ['Alarm accuracy','False alarm','Alarm recall']
@@ -273,9 +340,9 @@ def drawing():
     plt.xlabel("Index")
     
     t = str(int(time.time()))
-    result.iloc[:,1:].to_csv("C:/Users/Bin/Desktop/Thesis/Plotting/3/Prediction_performance"+t+".csv",header=None,index=None)
+    result.iloc[:,1:].to_csv(save_path+"Prediction_performance"+t+".csv",header=None,index=None)
 
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/Recall"+t+".png")
+    plt.savefig(save_path+"Recall"+t+".png")
     plt.show()
     plt.close()
     
@@ -294,7 +361,7 @@ def drawing():
     plt.ylabel("Count")
     plt.xlabel("Index")
     
-    plt.savefig("C:/Users/Bin/Desktop/Thesis/Plotting/3/FalseAlarm"+t+".png")
+    plt.savefig(save_path+"FalseAlarm"+t+".png")
     plt.show()
     plt.close()
     
