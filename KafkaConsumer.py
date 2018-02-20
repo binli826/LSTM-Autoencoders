@@ -21,7 +21,6 @@ from Conf_Prediction_KDD99 import Conf_Prediction_KDD99
 from LocalPreprocessing import LocalPreprocessing
 from EncDecAD_ReTrain import EncDecAD_ReTrain
 
-foo = []
 conf = Conf_Prediction_KDD99()
 batch_num =conf.batch_num
 step_num = conf.step_num
@@ -149,12 +148,12 @@ def prediction(stop_event):
                     label = dataframe_preprocessed.iloc[:,-1]
                     class_list = dataframe_preprocessed.iloc[:,-2]
                     # window.size == step_num
-                    
+                    print("Making prediciton on: ",str(index[0])+"-"+str(index[index.size-1])+'\n')
                     hard_example_window_index, results= pred.predict(dataset,index,label,class_list,sess,input_,output_,p_input,p_is_training,mu,sigma,threshold,buffer_info,false_alarm_list,anomaly_recall_list)
                     
                     # results : [alarm_accuracy,false_alarm,alarm_recall,pred]
-                    false_alarm_list.append([str(index[0])+"-"+str(index[index.size-1]),results[1]])
-                    anomaly_recall_list.append([str(index[0])+"-"+str(index[index.size-1]),results[2]])
+#                    false_alarm_list.append([str(index[0])+"-"+str(index[index.size-1]),results[1]])
+#                    anomaly_recall_list.append([str(index[0])+"-"+str(index[index.size-1]),results[2]])
                     
                     
                     # store pred & label relation
@@ -245,13 +244,19 @@ def retrain_plotting(class_labels,loss):
     
     fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(13,13))
     plt.subplots_adjust(hspace=0.5)
-    plt.title("Retrain report")
+    plt.suptitle("Retrain report")
     
     #ax1: threshold changes
     thresholds = pd.DataFrame(threshold_list)
     ax1.set_title("Threshold changing according to model update")
-    ax1.plot(range(thresholds.index.size),thresholds.iloc[:,1])
-    ax1.set_xticklabels(thresholds.iloc[:,0], rotation='vertical')
+    ax1.plot(thresholds.iloc[:,0],thresholds.iloc[:,1])
+    ax1.plot(thresholds.iloc[-1,0],thresholds.iloc[-1,1],'X',c='r')
+    if thresholds.index.size<25:
+        r = 'horizontal'
+    else:
+        r = 'vertical'
+    ax1.set_xticklabels(thresholds.iloc[:,0], rotation=r)
+    ax1.set_xticks(thresholds.iloc[:,0])
     ax1.set_xlabel("Index")
     ax1.set_ylabel("Threshold")
     
@@ -259,18 +264,34 @@ def retrain_plotting(class_labels,loss):
     ax2.set_title("Retrain dataset distribution")
     ax2.set_xlabel("Subsets")
     ax2.set_ylabel("Count")
-    foo = class_labels
-    label_counts = [class_labels.count(l) for l in  pd.Series(class_labels).unique()]
-    ax2.bar(range(len(label_counts)),label_counts)
-    ax2.set_xticklabels(list(pd.Series(class_labels).unique()), rotation='vertical')
+    
+#    label_counts = [class_labels.count(l) for l in  pd.Series(class_labels).unique()]
+#    ax2.bar(range(len(label_counts)),label_counts)
+#    ax2.set_xticklabels(list(pd.Series(class_labels).unique()), rotation='vertical')
    
+    count = []
+    labels = []
+    class_labels = pd.Series(class_labels)
+    for class_label in class_labels.unique():
+        count.append(class_labels[class_labels==class_label].size)
+        labels.append(class_label)
+    ax2.bar(range(len(labels)),count,width=0.2)
+    if len(count)<10:
+        r = 'horizontal'
+    else:
+        r = 'vertical'
+    ax2.set_xticklabels(labels, rotation=r)
+    ax2.set_xticks(range(len(labels)))
+    
+    ax2.set_ylim(max(count)*1.3)
     rects = ax2.patches
     for rect in rects:
         y_value = rect.get_height()
         x_value = rect.get_x() + rect.get_width() / 2
 
         ax2.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
-            ha='center', va='bottom')
+            ha='center', va='bottom')           
+        
         
     #ax3: retrain error
     ax3.plot(loss)
