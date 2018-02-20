@@ -49,7 +49,7 @@ class EncDecAD_Pred(object):
             print('Prediction report :')
             fig, (ax1,ax2,ax3,ax4,ax5,ax6) = plt.subplots(6,1,figsize=(15,25))
             plt.subplots_adjust( hspace=0.7)
-            plt.suptitle("Prediction on KDD99 dataset index between "+str(min(df_index_))+" to "+str(max(df_index_)))
+            plt.suptitle("Prediction on KDD99 dataset index between "+str(min(df_index_))+" to "+str(max(df_index_)),fontsize=30)
             ax1.set_title("Prediction")
             ax1.set_ylim(min(min(anomaly_scores),threshold)*0.8,max(max(anomaly_scores),threshold)*1.2)
 
@@ -241,10 +241,10 @@ class EncDecAD_Pred(object):
             print("false_alarm : ",false_alarm)
             print("alarm_recall : ",alarm_recall)
             anomaly_scores = pd.Series(anomaly_scores)
-            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold]) 
-            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])*2
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])/2
             
-            hard_example_window_index = anomaly_scores.between(lower_bound/5,upper_bound*5,inclusive=True)
+            hard_example_window_index = anomaly_scores.between(lower_bound,upper_bound,inclusive=True)
             assert df_index_.size!=0, "prediction dataset index size is 0"
             false_alarm_list.append([str(df_index_[0])+"-"+str(df_index_[df_index_.size-1]),false_alarm])
             anomaly_recall_list.append([str(df_index_[0])+"-"+str(df_index_[df_index_.size-1]),alarm_recall])

@@ -13,7 +13,6 @@ from kafka import KafkaConsumer
 import time, threading
 import sys
 import math
-import time
 import matplotlib.pyplot as plt
 sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code')
 from EncDecAD_Pred import EncDecAD_Pred
@@ -101,7 +100,7 @@ def read_block_from_queue(q,stop_event):
                 else:
                     dataframe = df_tmp
         else :
-            time.sleep(0.5)
+            time.sleep(0.1)
             
 def prediction(stop_event):
     global dataframe
@@ -175,6 +174,7 @@ def prediction(stop_event):
 #                    result_q.put(result_df)
                     # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
                     #hard examples from the original dataframe 
+                    
                     buffer.append(lpdf.loc[hard_example_window_index])
                     sub_lpdf = lpdf.loc[hard_example_window_index]
                     if sub_lpdf.size !=0:
@@ -244,7 +244,7 @@ def retrain_plotting(class_labels,loss):
     
     fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize=(13,13))
     plt.subplots_adjust(hspace=0.5)
-    plt.suptitle("Retrain report")
+    plt.suptitle("Retrain report",fontsize=30)
     
     #ax1: threshold changes
     thresholds = pd.DataFrame(threshold_list)
@@ -283,7 +283,7 @@ def retrain_plotting(class_labels,loss):
     ax2.set_xticklabels(labels, rotation=r)
     ax2.set_xticks(range(len(labels)))
     
-    ax2.set_ylim(max(count)*1.3)
+    ax2.set_ylim([0,max(count)*1.3])
     rects = ax2.patches
     for rect in rects:
         y_value = rect.get_height()
@@ -305,7 +305,7 @@ def retrain_plotting(class_labels,loss):
     plt.show()
     plt.close()
     
-def drawing():             
+def final_drawing():             
     global class_pred_relation 
     global index
     global results_list
@@ -314,33 +314,40 @@ def drawing():
     global threshold_list
     save_path = conf.plot_savepath
     
-    #threshols changes
+    
     t = str(int(time.time()))
     
+    fig, (ax1,ax2,ax3,ax4) = plt.subplots(4,1,figsize=(13,13))
+    plt.subplots_adjust(hspace=0.5)
+    plt.suptitle("Summary",fontsize=30)
+    
+    #ax1: threshold changes
     thresholds = pd.DataFrame(threshold_list)
-    thresholds.set_index(thresholds.iloc[:,0]).iloc[:,1].plot()
-    plt.xticks(thresholds.iloc[:,0],thresholds.iloc[:,0])
-    plt.title("Threshold changing according to model update")
-    plt.xlabel("Index")
-    plt.ylabel("Threshold")
-    plt.savefig(save_path+ "Threshold"+t+".png")
-    plt.show()
-    plt.close()
+    ax1.set_title("Threshold changing according to model update")
+    ax1.plot(thresholds.iloc[:,0],thresholds.iloc[:,1])
+    ax1.plot(thresholds.iloc[-1,0],thresholds.iloc[-1,1],'X',c='r')
+    if thresholds.index.size<25:
+        r = 'horizontal'
+    else:
+        r = 'vertical'
+    ax1.set_xticklabels(thresholds.iloc[:,0], rotation=r)
+    ax1.set_xticks(thresholds.iloc[:,0])
+    ax1.set_xlabel("Index")
+    ax1.set_ylabel("Threshold")
+    
+
 
     # relationship
-    class_pred_relation.iloc[:,1:].plot.bar(figsize=(13,6))
-    plt.xticks(class_pred_relation.index, class_pred_relation.label, rotation='vertical')
-    plt.title("Prediction statistic according to class label")
-    plt.xlabel("Anomalous classes")
-    plt.ylabel("Count")
-    
-    
+    ax2.bar(class_pred_relation.iloc[:,1:])
+    ax2.set_xticklabels( class_pred_relation.label, rotation='vertical')
+    ax2.set_xticks(class_pred_relation.index)
+    ax2.set_title("Prediction statistic according to class label")
+    ax2.set_xlabel("Anomalous classes")
+    ax2.set_ylabel("Count")
     class_pred_relation.to_csv(save_path+"Prediction_relation"+t+".csv",header=None,index=None)
-    plt.savefig(save_path+"Prediction"+t+".png")
-    plt.show()
-    plt.close()
-    
 
+    
+    # results
     result = pd.concat(results_list,axis=0).reset_index(drop=True)
     if len(retrain_index_list) !=0:
         retrain_index = pd.concat(retrain_index_list,axis=0).reset_index(drop=True)
@@ -348,50 +355,31 @@ def drawing():
         retrain_index = pd.Series([])
 
     result = result.set_index(result.iloc[:,0]).iloc[:,1:]
-    print("result shape",result.shape)
     result.columns = ['Alarm accuracy','False alarm','Alarm recall']
     
     # anomaly recall
-    fig,ax = plt.subplots(1,1)
-    fig.set_size_inches(12,6)
-#    ax.scatter(retrain_index,np.ones(retrain_index.size)*(-0.2),label="Retrain data",c="y")
-#    ind = []
-#    for i in range(retrain_index.size-1):
-#        if retrain_index[i+1] ==retrain_index[i] + 1:
-#            ind.append(i)
-#        else :
-#            ax.fill_between(retrain_index[ind],y1=np.zeros(len(ind)),y2=np.ones(len(ind)))
-#            ind.clear()
-    
-#    ax.scatter(result.index,result.iloc[:,0],label="Alarm accuracy",c="b")
-    ax.scatter(result.index,result.iloc[:,2],label="Anomaly recall",c='g',s=0.1)
+    ax3.scatter(result.index,result.iloc[:,2],label="Anomaly recall",c='g',s=0.1)
     plt.legend()
-    plt.title("Anomaly recall")
-    plt.xlabel("Index")
+    ax3.set_title("Anomaly recall")
+    ax3.set_xlabel("Index")
     
-    t = str(int(time.time()))
     result.iloc[:,1:].to_csv(save_path+"Prediction_performance"+t+".csv",header=None,index=None)
-
-    plt.savefig(save_path+"Recall"+t+".png")
-    plt.show()
-    plt.close()
     
     #False alarm
-    fig,ax = plt.subplots(1,1)
-    fig.set_size_inches(12,6)
-    ax.scatter(result.index,result.iloc[:,1],label="False alarm",c='r',s=0.1)
+
+    ax4.scatter(result.index,result.iloc[:,1],label="False alarm",c='r',s=0.1)
     # retrain positions
     lines = [-0.2,1.1]*len(retrain_apply_indices)
     for i in range(len(retrain_apply_indices)):
         ys = [lines[i*2],lines[1+i*2]]
         xs = [retrain_apply_indices[i],retrain_apply_indices[i]]
-        ax.plot(xs,ys,c="grey")
-    plt.legend()
-    plt.title("#False Alarm")
-    plt.ylabel("Count")
-    plt.xlabel("Index")
+        ax4.plot(xs,ys,c="grey")
+    ax4.legend()
+    ax4.set_title("#False Alarm")
+    ax4.set_ylabel("Count")
+    ax4.set_xlabel("Index")
     
-    plt.savefig(save_path+"FalseAlarm"+t+".png")
+    plt.savefig(save_path+"Summary"+t+".png")
     plt.show()
     plt.close()
     
@@ -400,35 +388,26 @@ def drawing():
         count += x.index.size
     print("Made prediction on",count,"examples.")
     
+    
 def main():
     q = queue.Queue()
-#    result_q = queue.Queue()
     stop_event = threading.Event()
-    
     write = threading.Thread(target=block_generator2queue, name='WriteThread',args=(q,stop_event,))
     read = threading.Thread(target=read_block_from_queue, name='ReadThread',args=(q,stop_event,))
     predict = threading.Thread(target=prediction, name='Prediction',args=(stop_event,))
-#    draw = threading.Thread(target=drawing, name='Plotting',args=(stop_event,))
     
     try:
         
         write.start()
         read.start()
         predict.start()
-#        draw.start()
-        
+
         while 1:
             time.sleep(.1)
     except (KeyboardInterrupt,SystemExit): 
-        drawing()
+        final_drawing()
         stop_event.set()
         print("Threads closed.")
-    
-#    result = []
-#    while q.empty() == False:
-#        result.append(result_q.get())
-#    return result
-    
         
 if __name__=="__main__":
     main()

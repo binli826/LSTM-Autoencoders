@@ -41,13 +41,12 @@ class LocalPreprocessing(object):
         scaler = MinMaxScaler()
         scaler.fit(continuous)
         cont = scaler.transform(continuous)
-
         cont = pd.DataFrame(cont)
         cont.columns = continuous.columns.values
-        assert cont.index.size == label.size
+
         [cont,label] = [cl.reset_index(drop=True) for cl in [cont,label]]
         data = pd.concat((cont,label),axis=1)
-        assert data.index.size == grundtruth.size
+
         data = pd.concat((data,grundtruth),axis=1)
         
         # for test, return a scaled data block,
@@ -59,6 +58,7 @@ class LocalPreprocessing(object):
         # for training or retraining, return a list of sub-dataset for different uses
         else:
             # split data according to window length
+            print("before splitting",data.shape)
             n_list = []
             a_list = []
             temp = []
@@ -84,31 +84,22 @@ class LocalPreprocessing(object):
         
             normal = data.iloc[np.array(n_list),:-2]
             anomaly = data.iloc[np.array(a_list),:-2]
-            
+            print("Normal,anomaly",normal,anomaly)
 #            n_labels = data.iloc[np.array(n_list),-2]
             a_labels = data.iloc[np.array(a_list),-2]
-            # size of sn:vn1:vn2:tn == 3:1:1:4 (self defined)
-#            x = int(normal.shape[0]/self.L)
-#            sn = normal[:(x//2)*self.L]
-#            vn1 = normal[(x//2)*self.L:(x//2)*self.L+(x//6)*self.L]
-#            vn2 = normal[(x//2)*self.L+(x//6)*self.L:(x//2)*self.L+(x//3)*self.L]
-#            tn = normal[(x//2)*self.L+(x//3)*self.L:]
-            
+
             tmp = normal.index.size//10 # 4:2:2:2, va.size == vn2.size
             sn = normal.iloc[:tmp*4,:]
             vn1 = normal.iloc[tmp*4:tmp*6,:]
             vn2 = normal.iloc[tmp*6:tmp*8,:]
             tn = normal.iloc[tmp*8:,:]
-            # size of va:ta == 1:3 (self defined)
-#            y = int(anomaly.shape[0]/self.L)
-#            va = anomaly[:(y//4)*self.L]
-#            ta = anomaly[(y//4)*self.L:]
+
             va = anomaly.iloc[0:tmp*2,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
             ta = anomaly.iloc[va.index.size:,:]
             class_labels = ['normal' for _ in range(sn.shape[0]+vn1.shape[0]+vn2.shape[0]+tn.shape[0])]
 
             class_labels += list(a_labels)
-            
+            print("Local preprocessing finished.")
             return sn,vn1,vn2,tn,va,ta,class_labels
             
         

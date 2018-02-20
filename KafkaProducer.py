@@ -30,18 +30,19 @@ chunksize = 10000
 #http = []
 #smtp = []
 count = 0
-for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize):
+skiprows =80000
+for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize,skiprows=skiprows):
     count +=1
     if count in range(160,320): # for the KDD dataset, skip the middel part where lies continuous anomaly points
         continue
     for index,row in chunk.iterrows():
-        prefix = (str(index)+",").encode()
+        prefix = (str(index+skiprows)+",").encode()
         suffix = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()
         message = prefix+suffix
         producer.send('kdd99stream', message)
         print(message)
         
-        time.sleep(0.001)
+        time.sleep(0.00001)
 
         
         
