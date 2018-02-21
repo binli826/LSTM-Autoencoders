@@ -42,7 +42,7 @@ for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize,skiprows=
         producer.send('kdd99stream', message)
         print(message)
         
-        time.sleep(0.00001)
+        time.sleep(0.0000001)
 
         
         

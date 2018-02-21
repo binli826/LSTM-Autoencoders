@@ -241,8 +241,8 @@ class EncDecAD_Pred(object):
             print("false_alarm : ",false_alarm)
             print("alarm_recall : ",alarm_recall)
             anomaly_scores = pd.Series(anomaly_scores)
-            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])*2
-            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])/2
+            upper_bound = np.mean([anomaly_scores[anomaly_scores>threshold].median(),threshold])*5
+            lower_bound = np.mean([anomaly_scores[anomaly_scores<=threshold].median(),threshold])/5
             
             hard_example_window_index = anomaly_scores.between(lower_bound,upper_bound,inclusive=True)
             assert df_index_.size!=0, "prediction dataset index size is 0"

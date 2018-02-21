@@ -174,9 +174,17 @@ def prediction(stop_event):
 #                    result_q.put(result_df)
                     # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
                     #hard examples from the original dataframe 
-                    
+                    '''
+                    retrain data source change
                     buffer.append(lpdf.loc[hard_example_window_index])
                     sub_lpdf = lpdf.loc[hard_example_window_index]
+                    '''
+                    if lpdf.loc[hard_example_window_index].index.size>100:
+                        buffer.append(lpdf.loc[hard_example_window_index])
+                        sub_lpdf = lpdf.loc[hard_example_window_index]
+                    else:
+                        sub_lpdf = pd.DataFrame()
+                        
                     if sub_lpdf.size !=0:
                         buffer_info[0] += sub_lpdf[sub_lpdf.iloc[:,-1]=="normal"].index.size
                         buffer_info[1] += sub_lpdf[sub_lpdf.iloc[:,-1]!="normal"].index.size
@@ -317,35 +325,55 @@ def final_drawing():
     
     t = str(int(time.time()))
     
-    fig, (ax1,ax2,ax3,ax4) = plt.subplots(4,1,figsize=(13,13))
+    fig, (ax0,ax1,ax2,ax3,ax4) = plt.subplots(5,1,figsize=(13,16))
     plt.subplots_adjust(hspace=0.5)
     plt.suptitle("Summary",fontsize=30)
     
-    #ax1: threshold changes
+    #ax0: threshold changes
     thresholds = pd.DataFrame(threshold_list)
-    ax1.set_title("Threshold changing according to model update")
-    ax1.plot(thresholds.iloc[:,0],thresholds.iloc[:,1])
-    ax1.plot(thresholds.iloc[-1,0],thresholds.iloc[-1,1],'X',c='r')
-    if thresholds.index.size<25:
-        r = 'horizontal'
-    else:
-        r = 'vertical'
-    ax1.set_xticklabels(thresholds.iloc[:,0], rotation=r)
-    ax1.set_xticks(thresholds.iloc[:,0])
-    ax1.set_xlabel("Index")
-    ax1.set_ylabel("Threshold")
+    ax0.set_title("Threshold changing according to model update")
+    ax0.plot(thresholds.iloc[:,0],thresholds.iloc[:,1])
+    ax0.plot(thresholds.iloc[-1,0],thresholds.iloc[-1,1],'X',c='r')
+
+    ax0.set_xticklabels(thresholds.iloc[:,0], rotation='vertical')
+    ax0.set_xticks(thresholds.iloc[:,0])
+    ax0.set_xlabel("Index")
+    ax0.set_ylabel("Threshold")
+    
+    # relationship
+    ax1.bar(class_pred_relation.index,class_pred_relation.iloc[:,1])
+    ax1.set_xticklabels( class_pred_relation.label, rotation='vertical')
+    ax1.set_xticks(class_pred_relation.index)
+    ax1.set_title("False alarms")
+    ax1.set_xlabel("Anomalous classes")
+    ax1.set_ylabel("Count")
+    class_pred_relation.to_csv(save_path+"Prediction_relation"+t+".csv",header=None,index=None)
+    
+    rects = ax1.patches
+    for rect in rects:
+        y_value = int(rect.get_height())
+        x_value = rect.get_x() + rect.get_width() / 2
+
+        ax1.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
+            ha='center', va='bottom')
     
 
-
     # relationship
-    ax2.bar(class_pred_relation.iloc[:,1:])
+    ax2.bar(class_pred_relation.index,class_pred_relation.iloc[:,2])
     ax2.set_xticklabels( class_pred_relation.label, rotation='vertical')
     ax2.set_xticks(class_pred_relation.index)
-    ax2.set_title("Prediction statistic according to class label")
+    ax2.set_title("True alarms")
     ax2.set_xlabel("Anomalous classes")
     ax2.set_ylabel("Count")
     class_pred_relation.to_csv(save_path+"Prediction_relation"+t+".csv",header=None,index=None)
+    
+    rects = ax2.patches
+    for rect in rects:
+        y_value = int(rect.get_height())
+        x_value = rect.get_x() + rect.get_width() / 2
 
+        ax2.annotate(y_value, (x_value, y_value), xytext=(0, 5), textcoords="offset points", 
+            ha='center', va='bottom')
     
     # results
     result = pd.concat(results_list,axis=0).reset_index(drop=True)
@@ -367,7 +395,7 @@ def final_drawing():
     
     #False alarm
 
-    ax4.scatter(result.index,result.iloc[:,1],label="False alarm",c='r',s=0.1)
+    ax4.scatter(result.index,result.iloc[:,1],c='r',s=0.1)
     # retrain positions
     lines = [-0.2,1.1]*len(retrain_apply_indices)
     for i in range(len(retrain_apply_indices)):
@@ -378,7 +406,6 @@ def final_drawing():
     ax4.set_title("#False Alarm")
     ax4.set_ylabel("Count")
     ax4.set_xlabel("Index")
-    
     plt.savefig(save_path+"Summary"+t+".png")
     plt.show()
     plt.close()

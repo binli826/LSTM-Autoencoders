@@ -58,7 +58,6 @@ class LocalPreprocessing(object):
         # for training or retraining, return a list of sub-dataset for different uses
         else:
             # split data according to window length
-            print("before splitting",data.shape)
             n_list = []
             a_list = []
             temp = []
@@ -84,7 +83,6 @@ class LocalPreprocessing(object):
         
             normal = data.iloc[np.array(n_list),:-2]
             anomaly = data.iloc[np.array(a_list),:-2]
-            print("Normal,anomaly",normal,anomaly)
 #            n_labels = data.iloc[np.array(n_list),-2]
             a_labels = data.iloc[np.array(a_list),-2]
 

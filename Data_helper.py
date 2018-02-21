@@ -162,7 +162,7 @@ class Data_Helper(object):
         print("Local preprocessing finished.")
         return sn,vn1,vn2,tn,va,ta,class_labels
     def data_distribution_plotting(self,class_labels):
-        fig, ax = plt.subplots(1,1,figsize=(13,6))  
+        fig, ax = plt.subplots(1,1,figsize=(13,10))  
         
         ax.set_title("Initialization dataset distribution")
         ax.set_xlabel("Subsets")
