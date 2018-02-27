@@ -166,18 +166,20 @@ def prediction(stop_event):
 
                     results[3] = index
                      #[index,alarm_accuracy,false_alarm,alarm_recall,pred]
-                    result_df = pd.concat((results[3],pd.Series(results[0]*np.ones(results[3].size)),
+                    result_df = pd.concat((results[3],
+                                           pd.Series(results[0]*np.ones(results[3].size)),
                                            pd.Series(results[1]*np.ones(results[3].size)),
                                            pd.Series(results[2]*np.ones(results[3].size))),axis=1)
                     
                     results_list.append(result_df)
                     # check performence of last prediction, if bad, then add last batch of data into buffer
-                    if check_pred_result(results) == True:  #need add to buffer
+                  
+                    if check_pred_result(results[1],results[2]) == True:  #need add to buffer
                         buffer.append(lpdf)
                         buffer_info[0] += lpdf[lpdf.iloc[:,-1]=="normal"].index.size
                         buffer_info[1] += lpdf[lpdf.iloc[:,-1]!="normal"].index.size
                     buffer_data_len = sum([df_.shape[0] for df_ in buffer])
-                    
+                  
                     
                     
                     '''
@@ -227,7 +229,7 @@ def prediction(stop_event):
                             print("sn(%d), vn1(%d), vn2(%d), va(%d) batches."%(sn.index.size//step_num//batch_num,vn1.index.size//step_num//batch_num,vn2.index.size//step_num//batch_num,va.index.size//step_num//batch_num))
                             index_of_data_for_retrain = [i.iloc[:,0] for i in [sn,vn1,vn2,tn,va,ta]]                        
                             retrain_index_list += index_of_data_for_retrain
-                            # check out the largest index of retrain data, as the new threshold index after retrain
+                            # find out the largest index of retrain data, as the new threshold index after retrain
                             max_index = max(retrain_apply_indices)
                             
                             
@@ -257,19 +259,18 @@ def prediction(stop_event):
                     dataframe = pd.DataFrame()
                     lock.release()
                     
-def check_pred_result(results):
+def check_pred_result(false_alarm, anomaly_recall):
     '''
         check the prediction result, if performs bad, then add the batch of test data into retrain bufer
         para: 
-            results: prediction results, with form: [index,alarm_accuracy,false_alarm,alarm_recall,pred]
+            false_alarm,
+            alarm_recall
         return:
             True : should add to buffer
             False: not add to buffer
     '''
-    false_alarm = results[2]
-    alarm_recall = results[1]
     
-    if false_alarm > 10 or alarm_recall < 0.75:
+    if false_alarm > 10 or anomaly_recall < 0.75:
         return True
     else:
         return False
@@ -410,24 +411,26 @@ def final_drawing():
     else:
         retrain_index = pd.Series([])
 
-    result.columns = ['Alarm accuracy','False alarm','Alarm recall']
-    
+    result.columns = ['Index','Alarm accuracy','False alarm','Alarm recall']
+   
     # anomaly recall
-    ax3.scatter(result.index,result.iloc[:,2],label="Anomaly recall",c='g',s=0.1)
+    ax3.scatter(result.index,result.iloc[:,3],label="Anomaly recall",c='g',s=0.1)
     plt.legend()
     ax3.set_title("Anomaly recall")
     ax3.set_xlabel("Index")
     
-    result.iloc[:,1:].to_csv(save_path+"Prediction_performance"+t+".csv",header=None,index=None)
+    result.to_csv(save_path+"Prediction_performance"+t+".csv",index=None)
     
     #False alarm
-
-    ax4.scatter(result.index,result.iloc[:,1],c='r',s=0.1)
+    ax4.scatter(result.index,result.iloc[:,2],c='r',s=0.1)
+    
     # retrain positions
-    lines = [-0.2,1.1]*len(retrain_apply_indices)
-    for i in range(len(retrain_apply_indices)):
+    retrain_pos = list(pd.DataFrame(threshold_list).iloc[1:,0])[::2]
+    
+    lines = [-0.2,1.1]*len(retrain_pos)
+    for i in range(len(retrain_pos)):
         ys = [lines[i*2],lines[1+i*2]]
-        xs = [retrain_apply_indices[i],retrain_apply_indices[i]]
+        xs = [retrain_pos[i],retrain_pos[i]]
         ax4.plot(xs,ys,c="grey")
     ax4.legend()
     ax4.set_title("#False Alarm")

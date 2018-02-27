@@ -7,7 +7,7 @@ Created on Fri Jan 26 13:29:32 2018
 import time
 from kafka import KafkaProducer
 import pandas as pd
-
+#filename = "C:/Users/Bin/Documents/Datasets/KDD99/http.csv"
 filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected"
 #filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data.corrected"
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
@@ -42,7 +42,7 @@ for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize,skiprows=
         producer.send('kdd99stream', message)
         print(message)
         
-        time.sleep(0.0000001)
+        time.sleep(0.00001)
 
         
         
