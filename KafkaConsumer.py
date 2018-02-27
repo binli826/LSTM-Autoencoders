@@ -171,14 +171,19 @@ def prediction(stop_event):
                                            pd.Series(results[2]*np.ones(results[3].size))),axis=1)
                     
                     results_list.append(result_df)
-#                    result_q.put(result_df)
-                    # got hard examples' index from prediction, then using this index to find the UNpreprocessed 
-                    #hard examples from the original dataframe 
+                    # check performence of last prediction, if bad, then add last batch of data into buffer
+                    if check_pred_result(results) == True:  #need add to buffer
+                        buffer.append(lpdf)
+                        buffer_info[0] += lpdf[lpdf.iloc[:,-1]=="normal"].index.size
+                        buffer_info[1] += lpdf[lpdf.iloc[:,-1]!="normal"].index.size
+                    buffer_data_len = sum([df_.shape[0] for df_ in buffer])
+                    
+                    
+                    
                     '''
-                    retrain data source change
-                    buffer.append(lpdf.loc[hard_example_window_index])
-                    sub_lpdf = lpdf.loc[hard_example_window_index]
-                    '''
+                    retrain with hard examples
+                   
+                    
                     if lpdf.loc[hard_example_window_index].index.size>100:
                         buffer.append(lpdf.loc[hard_example_window_index])
                         sub_lpdf = lpdf.loc[hard_example_window_index]
@@ -188,8 +193,13 @@ def prediction(stop_event):
                     if sub_lpdf.size !=0:
                         buffer_info[0] += sub_lpdf[sub_lpdf.iloc[:,-1]=="normal"].index.size
                         buffer_info[1] += sub_lpdf[sub_lpdf.iloc[:,-1]!="normal"].index.size
-#                    print("A df with %d rows is added to Buffer."%lpdf.index.size)
+
                     buffer_data_len = sum([df_.shape[0] for df_ in buffer])
+                    '''
+                    
+                    
+                    
+                    
                     
                     if buffer_data_len >= MIN_RETRAIN_BLOCK_NUM*batch_num:
                             print("Apply for retraining...")
@@ -246,7 +256,25 @@ def prediction(stop_event):
                 finally:
                     dataframe = pd.DataFrame()
                     lock.release()
-
+                    
+def check_pred_result(results):
+    '''
+        check the prediction result, if performs bad, then add the batch of test data into retrain bufer
+        para: 
+            results: prediction results, with form: [index,alarm_accuracy,false_alarm,alarm_recall,pred]
+        return:
+            True : should add to buffer
+            False: not add to buffer
+    '''
+    false_alarm = results[2]
+    alarm_recall = results[1]
+    
+    if false_alarm > 10 or alarm_recall < 0.75:
+        return True
+    else:
+        return False
+        
+    
 def retrain_plotting(class_labels,loss):
     global threshold_list
     
@@ -382,7 +410,6 @@ def final_drawing():
     else:
         retrain_index = pd.Series([])
 
-    result = result.set_index(result.iloc[:,0]).iloc[:,1:]
     result.columns = ['Alarm accuracy','False alarm','Alarm recall']
     
     # anomaly recall
