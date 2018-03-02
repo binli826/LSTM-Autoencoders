@@ -17,14 +17,15 @@ class Conf_EncDecAD_KDD99(object):
         self.step_num = 20
         # data used for off-line training
 #        self.input_root = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected" 
-        self.input_root = "C:/Users/Bin/Documents/Datasets/KDD99/80000_10_percent_kdd.csv"
+#        self.input_root = "C:/Users/Bin/Documents/Datasets/KDD99/80000_10_percent_kdd.csv"
+        self.input_root = "C:/Users/Bin/Documents/Datasets/KDD99/80000http_train.csv"
         self.iteration = 500
 #        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
         self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/"
 #        self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
-        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt.meta"
-        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_kdd99_v1_para.ckpt"
-        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_kdd99_v1_para.ckpt.meta"
+        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_http_v1.ckpt.meta"
+        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_http_v1_para.ckpt"
+        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_http_v1_para.ckpt.meta"
         self.decode_without_input =  False
         
         

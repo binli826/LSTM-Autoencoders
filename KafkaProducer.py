@@ -7,8 +7,8 @@ Created on Fri Jan 26 13:29:32 2018
 import time
 from kafka import KafkaProducer
 import pandas as pd
-#filename = "C:/Users/Bin/Documents/Datasets/KDD99/http.csv"
-filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected"
+filename = "C:/Users/Bin/Documents/Datasets/KDD99/http_stream.csv"
+#filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data_10_percent_corrected"
 #filename = "C:/Users/Bin/Documents/Datasets/KDD99/kddcup.data.corrected"
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 # column names, is_guest_login & dis_host_login & logged_in & land & flag & service & protocol_type
@@ -29,12 +29,12 @@ with open("C:/Users/Bin/Documents/Datasets/KDD99/columns.txt") as col_file:
 chunksize = 10000
 #http = []
 #smtp = []
-count = 0
+#count = 0
 skiprows =80000
 for chunk in pd.read_csv(filename,names=col_names, chunksize=chunksize,skiprows=skiprows):
-    count +=1
-    if count in range(160,320): # for the KDD dataset, skip the middel part where lies continuous anomaly points
-        continue
+#    count +=1
+#    if count in range(160,320): # for the KDD dataset, skip the middel part where lies continuous anomaly points
+#        continue
     for index,row in chunk.iterrows():
         prefix = (str(index+skiprows)+",").encode()
         suffix = row.to_json(orient="split").split("data\":[")[1].strip("\"]}'").encode()

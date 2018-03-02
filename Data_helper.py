@@ -24,8 +24,8 @@ class Data_Helper(object):
             self.df = self.read_stream(self.training_set_size)
             
         elif training_data_source == "file":
-            self.df = pd.read_csv(self.path,header=None)
-         
+            self.df = pd.read_csv(self.path,header=None).iloc[:,1:]
+            
         else:
             print("Wrong option of training_data_source, could only choose stream or file.")
 

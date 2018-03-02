@@ -207,8 +207,8 @@ def prediction(stop_event):
                             print("Apply for retraining...")
                             if lpdf.loc[hard_example_window_index].size != 0:
                                 apply_index = buffer[-1].iloc[-1,0]
-                                if int(apply_index) not in retrain_apply_indices:
-                                    retrain_apply_indices.append(int(apply_index))
+                                if int(apply_index.strip('.0')) not in retrain_apply_indices:
+                                    retrain_apply_indices.append(int(apply_index.strip('.0')))
                             data_for_retrain = pd.concat(buffer,axis=0)
                             data_for_retrain.reset_index(drop=True,inplace=True)
                             #retrain dataset shape: (batch_num*step_num*MIN_RETRAIN_BLOCK_NUM,elem_num)

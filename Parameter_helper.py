@@ -76,6 +76,9 @@ class Parameter_Helper(object):
                 fp = len(abnormal_score)-tp
                 fn = np.array(normal_score)[np.array(normal_score)>threshold].size
                 tn = len(normal_score)- fn
+                
+                if tp == 0: return 0
+                
                 P = tp/(tp+fp)
                 R = tp/(tp+fn)
                 fbeta= (1+beta*beta)*P*R/(beta*beta*P+R)

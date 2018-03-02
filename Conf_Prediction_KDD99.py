@@ -21,10 +21,10 @@ class Conf_Prediction_KDD99(object):
         self.min_retrain_block_num = 5
 #        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
         self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/"
-        self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
-        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt.meta"
-        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_kdd99_v1_para.ckpt"
-        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_kdd99_v1_para.ckpt.meta"
+        self.modelpath = self.modelpath_root + "LSTMAutoencoder_http_v1.ckpt"
+        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_http_v1.ckpt.meta"
+        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_http_v1_para.ckpt"
+        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_http_v1_para.ckpt.meta"
         self.decode_without_input =  False
         self.column_name_file = "C:/Users/Bin/Documents/Datasets/KDD99/columns.txt"
         self.class_label_path = "C:/Users/Bin/Documents/Datasets/KDD99/classes.txt"
