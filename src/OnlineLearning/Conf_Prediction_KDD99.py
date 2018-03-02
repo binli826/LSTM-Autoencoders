@@ -12,23 +12,23 @@ class Conf_Prediction_KDD99(object):
     def __init__(self,):
         
 #        self.train_with_stream = True
-        self.batch_num = 20
-        self.hidden_num = 100
-        self.step_num = 20
+        self.batch_num = 2#20
+        self.hidden_num = 40#100
+        self.step_num = 84#20
         self.iteration = 1000
         self.retrain_iteration = 100
-        self.min_test_block_num = 2
-        self.min_retrain_block_num = 5
+        self.min_test_block_num = 1#2
+        self.min_retrain_block_num = 2#5
 #        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
-        self.modelpath_root ="C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/http/"
-        self.modelpath = self.modelpath_root + "LSTMAutoencoder_http_v1.ckpt"
-        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_http_v1.ckpt.meta"
-        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_http_v1_para.ckpt"
-        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_http_v1_para.ckpt.meta"
+        self.modelpath_root ="C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/"
+        self.modelpath = self.modelpath_root + "LSTMAutoencoder_smtp_v1.ckpt"
+        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_smtp_v1.ckpt.meta"
+        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_smtp_v1_para.ckpt"
+        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_smtp_v1_para.ckpt.meta"
         self.decode_without_input =  False
         self.column_name_file = "C:/Users/Bin/Documents/Datasets/KDD99/columns.txt"
-        self.class_label_path = "C:/Users/Bin/Documents/Datasets/KDD99/classes.txt"
-        
+#        self.class_label_path = "C:/Users/Bin/Documents/Datasets/KDD99/classes.txt"
+        self.class_label_path = "C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_demand_classlabel.txt"
         tmp = 0
         while True:
             tmp+=1

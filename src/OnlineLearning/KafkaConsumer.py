@@ -156,9 +156,9 @@ def prediction(stop_event):
                     for p in range(class_list.size):
                         if class_list[p] !='normal':
                             if predictions[p] ==1: # true alarm
-                                 class_pred_relation.loc[class_pred_relation.label ==  class_list[p],'True alarm'] += 1 
+                                 class_pred_relation.loc[class_pred_relation.label ==  class_list[p].strip("."),'True alarm'] += 1 
                             else: # false alarm
-                                 class_pred_relation.loc[class_pred_relation.label ==  class_list[p],'False alarm'] += 1 
+                                 class_pred_relation.loc[class_pred_relation.label ==  class_list[p].strip("."),'False alarm'] += 1 
 
                     results[3] = index # ori_index
                     #result_df format: #batch_rows * [index,alarm_accuracy,false_alarm,alarm_recall,pred]
@@ -408,13 +408,13 @@ def final_drawing():
     ax4.scatter(result.index,result.iloc[:,2],c='r',s=0.1)
     
     # retrain positions
-    retrain_pos = list(pd.DataFrame(threshold_list).iloc[1:,0])[::2]
+#    retrain_pos = list(pd.DataFrame(threshold_list).iloc[1:,0])[::2]
     
-    lines = [-0.2,1.1]*len(retrain_pos)
-    for i in range(len(retrain_pos)):
-        ys = [lines[i*2],lines[1+i*2]]
-        xs = [retrain_pos[i],retrain_pos[i]]
-        ax4.plot(xs,ys,c="grey")
+#    lines = [-0.2,1.1]*len(retrain_pos)
+#    for i in range(len(retrain_pos)):
+#        ys = [lines[i*2],lines[1+i*2]]
+#        xs = [retrain_pos[i],retrain_pos[i]]
+#        ax4.plot(xs,ys,c="grey")
     ax4.legend()
     ax4.set_title("#False Alarm")
     ax4.set_ylabel("Count")

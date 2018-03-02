@@ -57,7 +57,7 @@ class Parameter_Helper(object):
             otherwise estimate threshold through normal scores
             '''
             if len(self.conf.va_list) < self.conf.batch_num: # not enough anomaly data for a single batch
-                threshold = max(normal_score) * 5
+                threshold = max(normal_score) * 2
                 
             else:
             

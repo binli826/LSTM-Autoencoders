@@ -61,7 +61,8 @@ class ReTrainParaHelper(object):
             otherwise estimate threshold through normal scores
             '''
             if len(self.va_list) < self.batch_num: # not enough anomaly data for a single batch
-                threshold = np.mean(np.array(normal_score)) * 2
+                threshold = np.mean(np.array(normal_score)) * 2 if np.mean(np.array(normal_score)) * 2<10 else float('nan')
+                
                 return threshold
             else:
                 

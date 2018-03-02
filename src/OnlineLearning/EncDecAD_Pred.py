@@ -207,6 +207,14 @@ class EncDecAD_Pred(object):
                 data = data.reshape((self.conf.batch_num,self.conf.step_num,elem_num)) #**********#
                 (input_n, output_n) = sess.run([input_, output_], {p_input: data, p_is_training: False})
                 inputs.append(input_n)
+                
+                '''
+                power demand
+                '''
+                pd.Series(np.array(input_n).ravel()).plot()
+                pd.Series(np.array(output_n).ravel()).plot()
+                plt.savefig("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_demand"+str(time.time())+".png")
+                plt.close()
                 predictions.append(output_n)
                 err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num)
                 err_n = err_n.reshape(self.conf.batch_num,-1)
@@ -218,8 +226,8 @@ class EncDecAD_Pred(object):
                 # each anomaly_score represent for the anomalous likelyhood of a window (length == batch_num)
                 # so here replicate each score 20 times, to approximate the anomalous likelyhood for each data point
                 tmp = []
-                for i in range(self.conf.step_num):
-                    for _ in range(self.conf.batch_num):
+                for i in range(self.conf.batch_num):
+                    for _ in range(self.conf.step_num):
                         tmp.append(anomaly_scores_sub[i])
                 anomaly_scores_sub = tmp
                 

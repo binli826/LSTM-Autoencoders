@@ -7,11 +7,13 @@ Created on Fri Jan 26 13:29:32 2018
 import time
 from kafka import KafkaProducer
 import pandas as pd
-filename = "C:/Users/Bin/Documents/Datasets/KDD99/Continuously/http.csv"
+
+filename = "C:/Users/Bin/Documents/Datasets/KDD99/Continuously/smtp.csv"
+filename = "C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data_labeled.csv"
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
-chunksize = 10000
-skiprows =200000
+chunksize = 100#10000
+skiprows =1008#20000
 for chunk in pd.read_csv(filename,names=None, chunksize=chunksize,skiprows=skiprows):
 
     for index,row in chunk.iterrows():
