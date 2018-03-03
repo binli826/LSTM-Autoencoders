@@ -28,11 +28,11 @@ class EncDecAD(object):
          
             dec_weight_ = tf.Variable(tf.truncated_normal([hidden_num,self.elem_num], dtype=tf.float32))
  
-            dec_bias_ = tf.Variable(tf.constant(0.1,shape=[self.elem_num],dtype=tf.float32))
+            dec_bias_ = tf.Variable(tf.constant(0.01,shape=[self.elem_num],dtype=tf.float32))
 
-           
             dec_state = self.enc_state
             dec_input_ = tf.zeros(tf.shape(inputs[0]),dtype=tf.float32)
+#            dec_input_ = inputs[-1] #*********************
             dec_outputs = []
             
             for step in range(len(inputs)):
@@ -41,9 +41,28 @@ class EncDecAD(object):
                 (dec_input_, dec_state) =self._dec_cell(dec_input_, dec_state)
                 dec_input_ = tf.matmul(dec_input_, dec_weight_) + dec_bias_
                 dec_outputs.append(dec_input_)
-
+                # use real input as as input of decoder ***********************************
+                tmp = -(step+1) 
+                dec_input_ = inputs[tmp]
+#                dec_input_ = tf.reduce_mean([inputs[tmp],dec_input_],0)
+                
             if reverse:
                 dec_outputs = dec_outputs[::-1]
+            
+            '''
+                TimeNet
+            '''
+#            dec_inputs = [tf.zeros(tf.shape(inputs[0]),dtype=tf.float32) for _ in range(len(inputs))]
+#            (dec_outputs, dec_state) = tf.contrib.rnn.static_rnn(self._dec_cell, dec_inputs, initial_state=self.enc_state, dtype=tf.float32)
+#
+#            if reverse:
+#                dec_outputs = dec_outputs[::-1]
+#                
+#            dec_output_ = tf.transpose(tf.stack(dec_outputs), [1, 0,2])
+#            dec_weight_ = tf.tile(tf.expand_dims(dec_weight_, 0),[self.batch_num, 1, 1])
+#            self.output_ = tf.matmul(dec_output_, dec_weight_) + dec_bias_
+                
+                
 
             self.output_ = tf.transpose(tf.stack(dec_outputs), [1, 0, 2],name="output_")
             self.loss = tf.reduce_mean(tf.square(self.input_ - self.output_),name="loss")

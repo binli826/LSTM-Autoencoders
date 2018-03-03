@@ -23,5 +23,5 @@ for chunk in pd.read_csv(filename,names=None, chunksize=chunksize,skiprows=skipr
         producer.send('kdd99stream', message)
         print(message)
         
-        time.sleep(0.001)
+        time.sleep(0.1)
 
