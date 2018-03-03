@@ -28,11 +28,10 @@ class EncDecAD(object):
          
             dec_weight_ = tf.Variable(tf.truncated_normal([hidden_num,self.elem_num], dtype=tf.float32))
  
-            dec_bias_ = tf.Variable(tf.constant(0.01,shape=[self.elem_num],dtype=tf.float32))
+            dec_bias_ = tf.Variable(tf.constant(0.1,shape=[self.elem_num],dtype=tf.float32))
 
             dec_state = self.enc_state
-            dec_input_ = tf.zeros(tf.shape(inputs[0]),dtype=tf.float32)
-#            dec_input_ = inputs[-1] #*********************
+            dec_input_ = tf.ones(tf.shape(inputs[0]),dtype=tf.float32)
             dec_outputs = []
             
             for step in range(len(inputs)):
@@ -44,7 +43,6 @@ class EncDecAD(object):
                 # use real input as as input of decoder ***********************************
                 tmp = -(step+1) 
                 dec_input_ = inputs[tmp]
-#                dec_input_ = tf.reduce_mean([inputs[tmp],dec_input_],0)
                 
             if reverse:
                 dec_outputs = dec_outputs[::-1]
