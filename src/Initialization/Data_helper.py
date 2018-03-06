@@ -134,13 +134,13 @@ class Data_Helper(object):
         a_labels = data.iloc[np.array(a_list),-1]
 
         tmp = normal.index.size//10 # 4:2:2:2, va.size == vn2.size
-        sn = normal.iloc[:tmp*4,:]
-        vn1 = normal.iloc[tmp*4:tmp*6,:]
-        vn2 = normal.iloc[tmp*6:tmp*8,:]
+        sn = normal.iloc[:tmp*6,:]
+        vn1 = normal.iloc[tmp*6:tmp*8,:]
+        vn2 = normal.iloc[tmp*8:,:]
         tn = normal.iloc[tmp*8:,:]
 
-        va = anomaly.iloc[0:tmp*2,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
-        ta = anomaly.iloc[va.index.size:,:]
+        va = anomaly#.iloc[0:tmp,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
+        ta = anomaly#.iloc[va.index.size:,:]
         class_labels = ['normal' for _ in range(sn.shape[0]+vn1.shape[0]+vn2.shape[0]+tn.shape[0])]
 
         class_labels += list(a_labels)
