@@ -13,7 +13,7 @@ filename = "C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data_labeled
 producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
 chunksize = 100#10000
-skiprows =1008#20000
+skiprows =1008+84#20000
 for chunk in pd.read_csv(filename,names=None, chunksize=chunksize,skiprows=skiprows):
 
     for index,row in chunk.iterrows():

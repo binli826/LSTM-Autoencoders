@@ -11,13 +11,14 @@ sys.path.insert(0, 'C:/Users/Bin/Desktop/Thesis/code/src/OnlineLearning')
 from ReTrainParaHelper import ReTrainParaHelper
 class EncDecAD_ReTrain(object):
     
-    def __init__(self,conf, sn,vn1,vn2,tn,va,ta,):
+    def __init__(self,conf, sn,vn1,vn2,tn,va,ta,va_label):
         self.sn = sn
         self.vn1 = vn1
         self.vn2 = vn2
         self.tn = tn
         self.va = va
         self.ta = ta
+        self.va_label = va_label
         self.retrain_iteration = conf.retrain_iteration
         self.batch_num = conf.batch_num
         self.step_num = conf.step_num
@@ -37,7 +38,8 @@ class EncDecAD_ReTrain(object):
         
         self.tn_list = [self.tn[self.step_num*i:self.step_num*(i+1)].as_matrix() for i in range(t5)]
         self.ta_list = [self.ta[self.step_num*i:self.step_num*(i+1)].as_matrix() for i in range(t6)]
-        
+        self.va_label_list =  [self.va_label[self.step_num*i:self.step_num*(i+1)].as_matrix() for i in range(t2)]
+       
     def continue_training(self,sess,loss_, train_,p_input,p_inputs,p_is_training,input_,output_):
         loss = []
         for i in range(self.retrain_iteration):
@@ -55,7 +57,7 @@ class EncDecAD_ReTrain(object):
         
         # mu & sigma & threshold
         
-        para = ReTrainParaHelper(self.vn1_list,self.vn2_list,self.va_list,self.batch_num,self.step_num,self.elem_num)
+        para = ReTrainParaHelper(self.vn1_list,self.vn2_list,self.va_list,self.batch_num,self.step_num,self.elem_num,self.va_label_list)
         mu, sigma = para.mu_and_sigma(sess,input_, output_,p_input, p_is_training)
         threshold = para.get_threshold(mu,sigma,sess,input_, output_,p_input, p_is_training)
         print("Threshold:%.3f"%threshold)

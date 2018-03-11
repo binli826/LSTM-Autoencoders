@@ -27,7 +27,7 @@ class Conf_EncDecAD_KDD99(object):
         self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt.meta"
         self.decode_without_input =  False
         self.data_helper_plot_path = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/"
-        self.training_set_size = 1008#20000
+        self.training_set_size = 1008+84#20000
         # import dataset
         # The dataset is divided into 6 parts, namely training_normal, validation_1,
         # validation_2, test_normal, validation_anomaly, test_anomaly.
@@ -47,4 +47,4 @@ class Conf_EncDecAD_KDD99(object):
         self.data_list = [self.sn_list, self.va_list, self.vn1_list, self.vn2_list, self.tn_list, self.ta_list]
         
         self.elem_num = data_helper.sn.shape[1]
-     
+        self.va_label_list = data_helper.va_label_list 

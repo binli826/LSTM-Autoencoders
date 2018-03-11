@@ -216,20 +216,27 @@ class EncDecAD_Pred(object):
                 plt.savefig("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_demand"+str(time.time())+".png")
                 plt.close()
                 predictions.append(output_n)
-                err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num)
-                err_n = err_n.reshape(self.conf.batch_num,-1)
+#                err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num)
+#                err_n = err_n.reshape(self.conf.batch_num,-1)
+                err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num,self.conf.elem_num)
+                for window in range(self.conf.batch_num):
+                    for t in range(self.conf.step_num):
+                        temp = np.dot((err_n[window,t,:] - mu[t,:] ) , sigma[t])
+                        s = np.dot(temp,(err_n[window,t,:] - mu[t,:] ).T)
+                        anomaly_scores_sub.append(s)
                 
-                for batch in range(self.conf.batch_num):
-                   temp = np.dot( (err_n[batch] - mu ).reshape(1,-1)  , sigma.T)
-                   s = np.dot(temp,(err_n[batch] - mu ))
-                   anomaly_scores_sub.append(s[0])
+                
+#                for batch in range(self.conf.batch_num):
+#                   temp = np.dot( (err_n[batch] - mu ).reshape(1,-1)  , sigma.T)
+#                   s = np.dot(temp,(err_n[batch] - mu ))
+#                   anomaly_scores_sub.append(s[0])
                 # each anomaly_score represent for the anomalous likelyhood of a window (length == batch_num)
                 # so here replicate each score 20 times, to approximate the anomalous likelyhood for each data point
-                tmp = []
-                for i in range(self.conf.batch_num):
-                    for _ in range(self.conf.step_num):
-                        tmp.append(anomaly_scores_sub[i])
-                anomaly_scores_sub = tmp
+#                tmp = []
+#                for i in range(self.conf.batch_num):
+#                    for _ in range(self.conf.step_num):
+#                        tmp.append(anomaly_scores_sub[i])
+#                anomaly_scores_sub = tmp
                 
                 anomaly_scores += anomaly_scores_sub
                 

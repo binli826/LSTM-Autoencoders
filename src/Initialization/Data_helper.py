@@ -34,7 +34,7 @@ class Data_Helper(object):
             for count in range(10):
                 if count == 9:
                     raise Exception("Time out, didn't got enough continuous normal data for trianing, pleace use data from file.")
-                self.sn,self.vn1,self.vn2,self.tn,self.va,self.ta,class_labels = self.preprocessing(self.df)
+                self.sn,self.vn1,self.vn2,self.tn,self.va,self.ta,class_labels,_ = self.preprocessing(self.df)
                 if min(self.sn.size,self.vn1.size,self.vn2.size,self.tn.size,self.va.size,self.ta.size) == 0:
                     print("Currently not enough continuous normal data in the stream for training, waiting for next batch...")
                     self.df = pd.concat((self.df,self.read_stream(10000)),axis=0).reset_index(drop=True) # read another 10000 rows from stream
@@ -42,9 +42,10 @@ class Data_Helper(object):
                 else:
                     break
         else:            
-             self.sn,self.vn1,self.vn2,self.tn,self.va,self.ta,class_labels = self.preprocessing(self.df)
+             self.sn,self.vn1,self.vn2,self.tn,self.va,self.ta,class_labels,self.va_labels = self.preprocessing(self.df)
              assert min(self.sn.size,self.vn1.size,self.vn2.size,self.tn.size,self.va.size,self.ta.size) > 0, "Not enough continuous data in file for training, ended."+str((self.sn.size,self.vn1.size,self.vn2.size,self.tn.size,self.va.size,self.ta.size))
         self.data_distribution_plotting(class_labels)
+            
         # data seriealization
         t1 = self.sn.shape[0]//step_num
         t2 = self.va.shape[0]//step_num
@@ -61,6 +62,7 @@ class Data_Helper(object):
         self.tn_list = [self.tn[step_num*i:step_num*(i+1)].as_matrix() for i in range(t5)]
         self.ta_list = [self.ta[step_num*i:step_num*(i+1)].as_matrix() for i in range(t6)]
         
+        self.va_label_list =  [self.va_labels[step_num*i:step_num*(i+1)].as_matrix() for i in range(t2)]
         
         print("Ready for training.")
     def read_stream(self,size):
@@ -110,7 +112,18 @@ class Data_Helper(object):
         n_list = []
         a_list = []
         temp = []
-        
+        a_pos= []
+        #new version: iter windows
+        windows = [data.iloc[w*self.step_num:(w+1)*self.step_num,:] for w in range(data.index.size//self.step_num)]
+        for win in windows:
+            label = win.iloc[:,-1]
+            if label[label!="normal"].size == 0:
+                n_list += [i for i in win.index]
+            else:
+                a_list += [i for i in win.index]
+                
+        '''
+        # old version: iter all rows
         for index, row in data.iterrows():
             if len(temp) ==1:
                 for x in temp:
@@ -128,24 +141,31 @@ class Data_Helper(object):
             else:
                 temp.clear()
                 temp.append(index)
+        '''        
+                
         normal = data.iloc[np.array(n_list),:-1]
         anomaly = data.iloc[np.array(a_list),:-1]
         print("normal,anomaly",normal.shape,anomaly.shape)
         a_labels = data.iloc[np.array(a_list),-1]
 
-        tmp = normal.index.size//10 # 4:2:2:2, va.size == vn2.size
-        sn = normal.iloc[:tmp*6,:]
-        vn1 = normal.iloc[tmp*6:tmp*8,:]
-        vn2 = normal.iloc[tmp*8:,:]
-        tn = normal.iloc[tmp*8:,:]
-
+        tmp = normal.index.size//self.step_num//10 # 4:2:2:2, va.size == vn2.size
+        assert tmp > 0 ,"Too small normal set %d rows"%normal.index.size
+        sn = normal.iloc[:tmp*5*self.step_num,:]
+        vn1 = normal.iloc[tmp*5*self.step_num:tmp*9*self.step_num,:]
+        vn2 = normal.iloc[tmp*9*self.step_num:,:]
+        tn = normal.iloc[tmp*9*self.step_num:,:]
+        
         va = anomaly#.iloc[0:tmp,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
         ta = anomaly#.iloc[va.index.size:,:]
+        a_labels = a_labels[:va.index.size]
+        
         class_labels = ['normal' for _ in range(sn.shape[0]+vn1.shape[0]+vn2.shape[0]+tn.shape[0])]
 
         class_labels += list(a_labels)
         print("Local preprocessing finished.")
-        return sn,vn1,vn2,tn,va,ta,class_labels
+        return sn,vn1,vn2,tn,va,ta,class_labels,a_labels
+    
+    
     def data_distribution_plotting(self,class_labels):
         fig, ax = plt.subplots(1,1,figsize=(13,10))  
         

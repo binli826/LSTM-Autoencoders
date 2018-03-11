@@ -205,7 +205,7 @@ def prediction(stop_event):
                             data_for_retrain.reset_index(drop=True,inplace=True)
                             #retrain dataset shape: (batch_num*step_num*MIN_RETRAIN_BLOCK_NUM,elem_num)
                             data_for_retrain = data_for_retrain.iloc[:data_for_retrain.index.size-data_for_retrain.index.size%batch_num,:]
-                            sn,vn1,vn2,tn,va,ta,class_labels = local_preprocessing.run(data_for_retrain, for_training = True)
+                            sn,vn1,vn2,tn,va,ta,class_labels,va_label = local_preprocessing.run(data_for_retrain, for_training = True)
                             
                             if min([x.index.size for x in [sn,vn1,vn2]])<batch_num*step_num:
                                 
@@ -225,7 +225,7 @@ def prediction(stop_event):
                             max_index = max(retrain_apply_indices)
                             
                             [sn,vn1,vn2,tn,va,ta] = [tmpd.iloc[:,1:] for tmpd in [sn,vn1,vn2,tn,va,ta]]
-                            retrain = EncDecAD_ReTrain(conf,sn,vn1,vn2,tn,va,ta)
+                            retrain = EncDecAD_ReTrain(conf,sn,vn1,vn2,tn,va,ta,va_label)
                             
                             threshold_list.append([max_index,threshold]) ## for plotting
                             mu_new,sigma_new,threshold_new,loss = retrain.continue_training(sess,loss_, train_,p_input,p_inputs,p_is_training,input_,output_)

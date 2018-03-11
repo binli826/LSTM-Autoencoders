@@ -103,14 +103,17 @@ class LocalPreprocessing(object):
 
             va = anomaly.iloc[0:tmp*2,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
             ta = anomaly.iloc[va.index.size:,:]
+            
+            a_labels = a_labels[:va.index.size]
             class_labels = ['normal' for _ in range(sn.shape[0]+vn1.shape[0]+vn2.shape[0]+tn.shape[0])]
 
             class_labels += list(a_labels)
+            a_labels = a_labels[:va.index.size]
             print("Local preprocessing finished.")
             # format: 
 #                sn,vn1,vn2,tn,va,ta : [ori_index,f1,...,fn]
 #                class_label : string labels for va and ta
-            return sn,vn1,vn2,tn,va,ta,class_labels
+            return sn,vn1,vn2,tn,va,ta,class_labels,a_labels
             
         
         
