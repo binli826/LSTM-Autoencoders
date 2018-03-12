@@ -32,7 +32,8 @@ class Conf_Prediction_KDD99(object):
         self.decode_without_input =  False
         self.column_name_file = "C:/Users/Bin/Documents/Datasets/KDD99/columns.txt"
 #        self.class_label_path = "C:/Users/Bin/Documents/Datasets/KDD99/classes.txt"
-        self.class_label_path = "C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_demand_classlabel.txt"
+#        self.class_label_path = "C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_demand_classlabel.txt"
+        self.class_label_path = "C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data_labeled.csv"
         tmp = 0
         while True:
             tmp+=1

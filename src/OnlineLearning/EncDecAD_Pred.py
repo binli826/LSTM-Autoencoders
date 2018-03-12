@@ -218,7 +218,7 @@ class EncDecAD_Pred(object):
                 predictions.append(output_n)
 #                err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num)
 #                err_n = err_n.reshape(self.conf.batch_num,-1)
-                err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num,self.conf.elem_num)
+                err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num,elem_num)
                 for window in range(self.conf.batch_num):
                     for t in range(self.conf.step_num):
                         temp = np.dot((err_n[window,t,:] - mu[t,:] ) , sigma[t])

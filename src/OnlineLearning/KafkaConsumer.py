@@ -53,10 +53,12 @@ false_alarm_list = []
 anomaly_recall_list = []
 
 # use for store relation between pred and lables
-with open(class_label_file) as file:
-    line = file.readline()
-    class_labels = pd.Series(line.split(","),name="label")
-    class_labels = class_labels[class_labels!="normal"].reset_index(drop=True)
+#with open(class_label_file) as file:
+#    line = file.readline()
+#    class_labels = pd.Series(line.split(","),name="label")
+#    class_labels = class_labels[class_labels!="normal"].reset_index(drop=True)
+class_labels = pd.read_csv(class_label_file,names=["value","label"]).iloc[:,1]
+class_labels = class_labels[class_labels!="normal"].reset_index(drop=True)
 class_pred_relation = pd.DataFrame(np.zeros(class_labels.size*2).reshape(-1,2),columns=['False alarm','True alarm'])# two columns for a_as_n  and a_as_a
 class_pred_relation = pd.concat((class_labels,class_pred_relation),axis=1)
 class_pred_relation.label = class_pred_relation.label.apply(str)
