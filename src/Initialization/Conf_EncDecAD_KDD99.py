@@ -20,14 +20,14 @@ class Conf_EncDecAD_KDD99(object):
         self.input_root ="C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data_labeled.csv"
         self.iteration = 500
 #        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
-        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/Try7_1_40_84/"
+        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/Try8_1_40_84/"
 #        self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
         self.modelmeta = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_.ckpt.meta"
         self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt"
         self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt.meta"
         self.decode_without_input =  False
         self.data_helper_plot_path = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/"
-        self.training_set_size = 1008+84#20000
+        self.training_set_size = 84*13#20000
         # import dataset
         # The dataset is divided into 6 parts, namely training_normal, validation_1,
         # validation_2, test_normal, validation_anomaly, test_anomaly.
