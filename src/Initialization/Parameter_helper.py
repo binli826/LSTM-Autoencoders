@@ -8,7 +8,7 @@ import sys
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from scipy.spatial.distance import mahalanobis
+from scipy.spatial.distance import mahalanobis,euclidean
 class Parameter_Helper(object):
     
     def __init__(self, conf):
@@ -35,15 +35,17 @@ class Parameter_Helper(object):
 
         # new metric
         err_vec_array = np.array(err_vec_list).reshape(-1,self.conf.step_num,self.conf.elem_num)
-        mu = np.mean(err_vec_array,axis=0)
-#        sigma_list = [] 
-#        for vec in err_vec_list:
-#            sub_sigma = np.dot((np.array(vec)-mu),(np.array(vec)-mu).T)
-#            sigma_list.append(sub_sigma)
-#        sigma = sum(sigma_list)/(len(sigma_list)-1) # estimate according to https://en.wikipedia.org/wiki/Multivariate_normal_distribution
         
-        sigma = pd.DataFrame(err_vec_array.reshape(-1,self.conf.step_num)).cov()
-        
+        # for univariate data, anomaly score is squared euclidean distance
+        # for multivariate data, anomaly score is squared mahalanobis distance
+        #mu = np.mean(err_vec_array,axis=0)
+        if self.conf.elem_num == 1:  # univariate
+            mu = np.mean(err_vec_array.ravel())
+            sigma = np.var(err_vec_array.ravel())
+        #sigma = pd.DataFrame(err_vec_array.reshape(-1,self.conf.step_num)).cov()
+        else:
+            mu = 0
+            sigma = 0
         print("Got parameters mu and sigma.")
         
         return mu, sigma
@@ -61,21 +63,16 @@ class Parameter_Helper(object):
                 err_n = abs(input_n-output_n).reshape(-1,self.conf.step_num,self.conf.elem_num)
                 
                 
-                for window in range(self.conf.batch_num):
-                   s = mahalanobis(err_n[window], mu, np.linalg.inv(sigma))
-                   normal_score.append(s)
-#                   temp = np.dot((err_n[window] - mu ).T  , np.linalg.inv(sigma))
-#                   s = np.dot(temp,(err_n[window] - mu ))
-                   
-                   
-                   
 #                for window in range(self.conf.batch_num):
-#                    win_a = []
-#                    for t in range(self.conf.step_num):
-#                        temp = np.dot((err_n[window,t,:] - mu[t,:] ) , sigma[t])
-#                        s = np.dot(temp,(err_n[window,t,:] - mu[t,:] ).T)
-##                        win_a.append(s)
-#                        normal_score.append(s)
+#                for err in err_n.ravel():
+#                   if self.conf.elem_num == 1:
+#                       s = euclidean(mu,err)
+#                   normal_score.append(s)
+                for window in range(self.conf.batch_num):
+                        for t in range(self.conf.step_num):
+                            s = euclidean(mu,err_n[window,t,0])
+                            normal_score.append(s)
+
                     
             abnormal_score = []
             '''
@@ -97,23 +94,22 @@ class Parameter_Helper(object):
                     va_lable_list = va_lable_list.reshape(self.conf.batch_num,self.conf.step_num)
                     
                     (input_a, output_a) = sess.run([input_, output_], {p_input: abnormal_sub,p_is_training : False})
-#                    err_a = abs(input_a-output_a).reshape(-1,self.conf.step_num)
-#                    err_a = err_a.reshape(self.conf.batch_num,-1)
                     err_a = abs(input_a-output_a).reshape(-1,self.conf.step_num,self.conf.elem_num)
-                    for batch in range(self.conf.batch_num):
-                       s= mahalanobis(err_a[window], mu, np.linalg.inv(sigma))
-#                       temp = np.dot( (err_a[batch] - mu ).T  , np.linalg.inv(sigma))
-#                       s = np.dot(temp,(err_a[batch] - mu ))
-                       abnormal_score.append(s)   
+#                    for batch in range(self.conf.batch_num):
+#                    for err in err_a:
+#                        if self.conf.elem_num == 1:
+#                            s = euclidean(mu,err)
+#                       abnormal_score.append(s)   
                        
-#                    for window in range(self.conf.batch_num):
-#                        for t in range(self.conf.step_num):
+                    for window in range(self.conf.batch_num):
+                        for t in range(self.conf.step_num):
 #                            temp = np.dot((err_a[window,t,:] - mu[t,:] ) , sigma[t])
 #                            s = np.dot(temp,(err_a[window,t,:] - mu[t,:] ).T)
-#                            if va_lable_list[window,t] == "normal":
-#                                normal_score.append(s)
-#                            else:
-#                                abnormal_score.append(s)
+                            s = euclidean(mu,err_a[window,t,0])
+                            if va_lable_list[window,t] == "normal":
+                                normal_score.append(s)
+                            else:
+                                abnormal_score.append(s)
                 
                 upper = np.median(np.array(abnormal_score))
                 lower = np.median(np.array(normal_score)) 
