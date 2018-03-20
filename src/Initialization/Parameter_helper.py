@@ -120,6 +120,9 @@ class Parameter_Helper(object):
                 result = 0
                 
                 def evaluate(threshold,normal_score,abnormal_score):
+                    pd.Series(normal_score).to_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/normal.csv",index=None)
+                    pd.Series(abnormal_score).to_csv("C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/abnormal.csv",index=None)
+                    
                     beta = 0.5
                     tp = np.array(abnormal_score)[np.array(abnormal_score)>threshold].size
                     fp = len(abnormal_score)-tp
