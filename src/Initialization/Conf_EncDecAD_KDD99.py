@@ -12,19 +12,16 @@ class Conf_EncDecAD_KDD99(object):
     
     def __init__(self, training_data_source = "file", optimizer=None, decode_without_input=False):
         
-        self.batch_num = 1#20
+        self.batch_num = 1
         self.hidden_num = 40
-        self.step_num = 84#20
-        # data used for off-line training
-        self.input_root = "C:/Users/Bin/Documents/Datasets/KDD99/Continuously/smtp.csv"
+        self.step_num = 84
         self.input_root ="C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data_labeled.csv"
         self.iteration = 500
-#        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel/"
-        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/Try8_1_40_84/"
-#        self.modelpath = self.modelpath_root + "LSTMAutoencoder_kdd99_v1.ckpt"
-        self.modelmeta = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_.ckpt.meta"
-        self.modelpath_p = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt"
-        self.modelmeta_p = self.modelpath_root + "LSTMAutoencoder_power_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt.meta"
+        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/Try9_1_40_84/"
+        
+        self.modelmeta = self.modelpath_root + "_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_.ckpt.meta"
+        self.modelpath_p = self.modelpath_root + "_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt"
+        self.modelmeta_p = self.modelpath_root + "_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt.meta"
         self.decode_without_input =  False
         self.data_helper_plot_path = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/"
         self.training_set_size = 84*13#20000
