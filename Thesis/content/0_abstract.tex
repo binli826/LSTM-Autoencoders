@@ -1,0 +1,5 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\label{chap:abstract}
+Data stream is a data format appears in plenty of big data research scenarios, for example, manufactural sensors, production line data etc. Here anomaly detection plays an important role for use cases like predictive maintenance, event detection, and could potentially avoid large amount of financial costs. However, different from traditional anomaly detection tasks, anomaly detection in streaming data is especially difficult while data comes along the time with latent changes, so that a single static model doesn’t fit streaming data all the time. 
+In this paper, we propose a novel autoencoder-based anomaly detection approach specially designed for streaming data. The model takes mini-batches of data from the stream as input, and try to reconstruct it using autoencoder, and the anomaly likelihood is informed by the reconstruction error. Experimental results suggests that our model can sufficiently detect anomaly from data stream and update model online to fit the latest data property.

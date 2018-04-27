@@ -1,9 +1,0 @@
-\chapter{Model}
-\label{model}
-
-\section{LSTMs-based autoencoder}
-\label{sec:LSTMs-based autoencoder}
-
-The basic anomaly detection model is designed in an autoencoder based architecture. However, the target is to detect abnormal data points from a data stream, or in other words, detect anomalous from a time series in an online fashion, which is actually different from traditional outlier detection from batch data, while data points within a time series always has potencial temporal dependencies between each other, and these information would play important roles. From the perspective of neural networks, Recurrent Neural Networks (RNNs) are designed for the analysis of such dynamic data and sequences of data. But in many practical cases, the RNNs are facing to the vanishing gradient problem. We always want the RNNs remember more knowlegde from the past, therefore the Long-Short Term Memory networks (LSTM networks) becomes a good replacement of the RNNs. In our autoencoder, we construct both the encoder and the decoder with LSTMs, in order to keep the past knowledge and use for future prediction. 
-
-Consider the time series X=$\{x^{1}, x^{2}, ..., x^{t} \}$, x^{i}\in \mathbb{R},  
