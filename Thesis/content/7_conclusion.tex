@@ -1,42 +1,5 @@
-\chapter{Related works}
-\label{chap:related works}
-
-There is already pretty much research based on anomaly detection, some of them referred to deal with streaming data.
-
-\section{Classical machine learning based approaches}
-\label{sec:Classical machine learning based approaches}
-
-As an important component of data mining and machine learning, anomaly detection has been investigated using plenty efficient models. 
-LOF
-In anomaly detection, the Local Outlier Factor(LOF) is a common distance-based approach. LOF shares some concepts with DBSCAN such as ‘core distance’ and ‘reachability distance’, in order to estimate local density. Here, points with substantially lower local density than their neighbors are considered as anomalies. LOF shows competitive performance in many anomaly detection tasks, especially when dealing with data with unevenly density distribution. However, when use get a numerical factor from LOF model, it is actually hard to define a threshold automatically for the judgement of anomaly.
-
-OCSVM
-Another widely used model is the domain based One-class Support Vector Machine. As an unsupervised one-class classifier, OCSVM takes only normal data as input, and generates a decision surface to separate them from the anomaly states.  By analyzing anomalies, the datasets are always bias to the normal part, and anomaly appear only rarely. So, this kind of one-class classifiers avoid making balance between the two classes. Besides, they also take advantage of classical support vector machine, with the help of kernel method, they can also deal with linearly not separable data.
-Although classical machine learning approaches can handle most of the normal anomaly detection, only few of those approaches could be directly or after some modification used for time series or streaming data, while they ignore the temporal dependency between samples.
-
-
-
-\section{Autoencoder-based anomaly detection approaches}
-\label{sec:Autoencoder-based anomaly detection approaches}
-
-Autoencoders are widely used in text data and speech processing in order to represent or encoder temporally dependent words using RNN based architecture. LearningPhraseRepresentationsusingRNNEncoder–Decoder forStatisticalMachineTranslation 
-Furthermore, anomaly detection borrows similar idea that train an autoencoder with only normal data, and anomaly data as unknown patterns. Then the autoencoder can only reconstruct normal patterns, large reconstruction error indicates anomaly. 
-Electric Power System Anomaly Detection Using Neural Networks (RMSE, 6000epochs) use the vanilla autoencoder to detect abnormal status of the electric power system. As the signal data acquiring from the power network is time dependently, they apply non-overlapped sliding window upon the input data to capture temporal information. After reconstruction, the difference measurement is based on the first norm of autoencoder output and the desired value. And finally, the anomaly score is on the window level granularity that acquiring from applying smoothing and averaging on the distance vector.
-
-Malhotra et al. proposed a LSTM-based encoder-decoder architecture EncDecAD for sensor data anomaly detection. The model feeds sequential input data with a specific window length to the LSTM neurons in the input layer (encoder), as expect exactly same sequence in the output layer (decoder). And the hidden layer will learn a static representation vector of the temporal window sequence. It is proved in the experiments that the LSTM RNN captures the temporal dependency in sensor time series well and is able to detect subtle anomalies from quasi-periodic time-series and not predictable sequences. As scoring method, they assuming that the reconstruction error obeys gaussian distribution, and used this property to estimate the anomaly score.
-
-
-
-\section{Online incremental learning with autoencoders}
-\label{sec:Online incremental learning with autoencoders}
-
-Zhou et al. proposed an online incremental updating method for denoising autoencoders by modifying the hidden layer neurons in order to deal with the non-stationary streaming data properties. The kern ideal are two steps, merging hidden layer neurons if there are information redundancy, and adding hidden layer neurons to capture new knowledge. Their experimental result shows comparable or better reconstruction result than non-incremental approaches with only few data used during initialization. And they show that their incremental feature learning methods performs more adaptively and robustly to highly non-stationary input distribution.
-
-Dong et al proposed a 2-step anomaly detection mechanism with incremental autoencoders. The implemented the system with ensembled autoencoders in multithreads to leverage parallel computing when large volumes of data arrive. Besides their 2-step mechanism check anomaly in the first step and verify anomaly data with previous and subsequent data (to differ between anomalous state and concept drift) to reduce false-positive rate in anomaly detection. In the experimental results, they show that their model outperforms commonly used tree-based anomaly detection model especially when concept drift presents and speed up the online processing speed with mini-batch learning and online learning in multithreads.
-
-
-
-
+\chapter{Conclusion}
+\label{chap:conclusion}
 
 
 

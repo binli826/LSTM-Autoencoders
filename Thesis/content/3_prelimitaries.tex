@@ -112,3 +112,7 @@ LSTMs-autoencoder has the same encoder-decoder architecture, while the neurons a
 
 \end{figure}
 
+\section{Streaming data generator: Apache Kafka}
+\label{sec:Streaming data generator: Apache Kafka}
+
+We utilize Apache Kafka as the streaming platform. Kafka is a widely used Publish/Subscribe architecture streaming system. It different from classical message queue technique with its fault tolerant, durable and large capacity properties. In the experimental setting, our data source is static databases, Kafka generate real-time data stream pipeline as data source publish records to the specific topic (topic is the data category mechanisms used in Kafka), and furthermore the stream of records will be consumed by different consumers like our analysis model, visualization model etc. This configuration can be easily scaled up to more complicated and demanding real world use cases. Each record in the Kafka stream pipeline is in the form of [Key, Value, Timestamp], where keys are used for positioning and values carry the data record.
