@@ -6,13 +6,14 @@ There are already pretty much researches on anomaly detection, some of them refe
 \section{Classical machine learning based approaches}
 \label{sec:Classical machine learning based approaches}
 
-As an important component of data mining and machine learning, anomaly detection has been investigated using plenty efficient models. When talking about anomaly detection, the most intuitive solution may be detection of outliers from a dense cluster, or to find thoes data points that have obvious different property as their neighbors and so on. Within thoes large batch of classical methods, the Local Outlier Factor (LOF) and One-class Support Vector Machine (OCSVM) are two commonly used models in real-world use cases.\\\\
-\textbf{LOF model} \\
+As an important component of data mining and machine learning, anomaly detection has been investigated using plenty efficient models. When talking about anomaly detection, the most intuitive solution may be detection of outliers from a dense cluster, or to find thoes data points that have obvious different property as their neighbors and so on. Within thoes large batch of classical methods, the Local Outlier Factor (LOF) and One-class Support Vector Machine (OCSVM) are two commonly used models in real-world use cases.
 
+\subsection{Local outlier factor}
+\label{lof}
 In anomaly detection, the LOF is a common density-based approach. LOF shares some concepts with DBSCAN such as ‘core distance’ and ‘reachability distance’, in order to estimate local density. Here, points with substantially lower local density than their neighbors are considered as anomalies. LOF shows competitive performance in many anomaly detection tasks, especially when dealing with data with unevenly density distribution. However, when getting a numerical factor from LOF model, it is actually hard to define a threshold automatically for the judgement of anomaly.\\\\
 
-\textbf{OCSVM model} \\
-
+\subsection{One-class SVM}
+\label{ocsvm}
 Another widely used model is the domain based One-class Support Vector Machine. As an unsupervised one-class classifier, OCSVM takes only normal data as input, and generates a decision surface to separate them from the anomaly states.  By analyzing anomalies, the datasets are always bias to the normal part, and anomaly appear only rarely. So, this kind of one-class classifiers avoid making balance between the two classes. Besides, they also take advantage of classical support vector machine, with the help of kernel method, they can also deal with linearly not separable data. However, in the mean time, the choosing a proper kernel becomes a hard point of OCSVM. A suboptimal kernel function can seriously impact the performance.\\
 Although classical machine learning approaches can handle most of the normal anomaly detection, there a still a lack of pervasive models that fit different kinds of data characters. Moreover, only few of those approaches could be directly or after some modification used for time series and streaming data, while they ignore the temporal dependency between samples.
 

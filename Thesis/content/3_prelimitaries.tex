@@ -26,11 +26,39 @@ S=\{..., B^{(i)},B^{(i+MB)}, B^{(i+2MB)},...\}
 \section{Defination of anomlaies}
 \label{sec:Defination of anomalies}
 
-\textbf{Pointwise}\\
-A data point (instance) is anomalous if this point is distant from other observations according to some specific measurement metrics. This is used in fine-grained anomaly detection tasks, that need to find out every single anomalous instance, e.g. credit card fraud detection, spam email detection.\\
+\textbf{Pointwise}: A data point (instance) is anomalous if this point is distant from other observations according to some specific measurement metrics. This is used in fine-grained anomaly detection tasks, that need to find out every single anomalous instance, e.g. credit card fraud detection, spam email detection.\\
 
-\textbf{Window-based}\\
-A window is anomalous if the window contains one or more anomalous data points. For most of the window-based anomaly detection algorithm, they only calculate the anomaly score of a given window, it’s hard and sometimes not necessary to find out which data points in this window are those anomalies.
+\textbf{Window-based}: A window is anomalous if the window contains one or more anomalous data points. For most of the window-based anomaly detection algorithm, they only calculate the anomaly score of a given window, it’s hard and sometimes not necessary to find out which data points in this window are those anomalies.\\
+
+In the anomlay detection experiments, normal data is treated as positive class and anomalies as negative class. The confusion matrix is shown in Table~\ref{tab:confusion}
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{l|l|c|c|}
+\multicolumn{2}{c}{}&\multicolumn{2}{c}{Actual value}\\
+\cline{3-4}
+\multicolumn{2}{c|}{}&Normal&Abnormal\\
+\cline{2-4}
+\multirow{2}{*}{Prediction}& Normal & $TP$ & $FP$\\
+\cline{2-4}
+& Abnormal & $FN$ & $TN$\\
+\cline{2-4}
+\end{tabular}
+\end{center}
+\label{tab:confusion}
+\caption{Confusion matrix}
+\end{table}
+
+The target is to achieve higher true positive rate (equation \ref{eq:tpr}, predict normal data correctly) and while remain lower false positive rate (equation \ref{eq:fpr},miss classify anomalies as normal). The evaluation metric is Area Under the Curve (AUC), where curve represents the receiver operating characteristic curve, and is created by plotting the true positive rate against the false positive rate at various threshold settings.
+\begin{equation} \label{eq:tpr}
+TPR =\dfrac{TP}{TP+FN}
+\end{equation}
+
+\begin{equation} \label{eq:fpr}
+FPR = \dfrac{FP}{FP+TN}
+\end{equation}
+
+
 
 \section{LSTMs}
 \label{sec:LSTMs}
