@@ -68,17 +68,47 @@ During the initialization phase, a anomaly score threshold $\tau$ is also learne
 \tau = argmax Auc(a(N_3),a(A_1))
 \end{equation}
 
+The anomaly score of every instance in a window is compared with the threshold, and values over the threshold are predicted as anomalies. If a window contains more than $\tau_N$ anomalous values, this window is predicted as anomaly.
+
 
 
 
 \section{Online learning}
 \label{sec:Onlinelearning}
-However, if we consider using the model for streaming data, the autoencoder might get outdated because of the relative small and simple initialization dataset and concept drift happed along with time. So the update of model is necessary. The main contribution of this paper is the incremental learning setting of the autoencoder model.
+However, if we consider using the model for streaming data, the autoencoder might get outdated because of the relative small and simple initialization dataset and concept drift happed along with time. So the update of model is necessary. In this section, we introduce the incremental learning function of the LSTMs-Autoencoder.
+
+\subsection{Retraining dataset}
+\label{data}
+
+Normally when the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub thread collects data instances continuously from the Kafka publisher, and in the meantime, the main thread is working on real-time anomaly detection as long as mini-batches of data is provided by the sub thread. For each single window in the mini-batch, every instance is reconstructed and calculated the anomaly score using \Fref{eq:score}. The system maintains two data buffers for retraining (\Fref{fig:buffer}), one for normal data, and the other one for anomalies.Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, and we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. Normal data windows with average mean error over $\mu$ are regarded as not good mastered and will be appended into the normal buffer for retraining. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for threshold determination during retraining. To this end, when a retraining process is triggered, only wrong predicted normal data, those not well mastered, are used for retraining.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm, height=5cm]{buffer}
+\caption[Retraining data buffer]{Retraining data buffer}
+\label{fig:buffer}
+\end{figure}
+
 
 \subsection{Retraining trigger}
 \label{trigger}
 
-\subsection{Retraining dataset}
-\label{data}
+During the online processing, if the system detected that the model doesn’t fit the current data any more, then the retraining is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need retraining to fit the latest data, but still lack of anomaly data in the buffer to update the threshold. To this end, we separate the updating of model and threshold, namely, when the retraining is triggered, update threshold only if there is enough abnormal data, otherwise only retrain model with the normal buffer. In case of the normal buffer reaches a predefined size, the model is retrained in a sub thread while the main thread keeps processing the stream. 
+
+\subsection{Model retraining}
+\label{retraining}
+
+There are two retraining strategies, continue training and start from scratch. Once the retraining is triggered, the system examines the normal buffer. The normal buffer is divided into two parts, hard examples and extreme hard examples with the boundary being $\mu+2\sigma$. When the number of extreme hard examples in the buffer exceeds a specific proportion, it means that a great change happened in the stream, and the model is retrained from scratch. Otherwise the model still contains valuable information, so it is continue trained with the buffer data.\\
+
+Alternative: We use the hidden vector as the low-dimensional representation of input data. Hidden vector of all normal data is used to check, whether a new coming data is similar to the previous normal data.\\
+
+Similar to the model initial training, parameters $\mu$ and $\sigma$ are learned from a sub retraining set. They are combined with the previous parameters to generate the new one. If the anomaly buffer is large enough, a new threshold will also be learned, and combined with the previous value.
+
+
+\subsection{Optimizer}
+\label{optimizer}
+Adam, BPTT
+
+
 
 
