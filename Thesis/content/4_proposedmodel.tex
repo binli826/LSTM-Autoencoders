@@ -4,19 +4,17 @@
 \section{Framework overview}
 \label{sec:framework}
 
-The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. Apache Kafka is used as the stream generator as shown in \Fref{fig:kafka}. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and will be retrained when the retraining condition is triggered. As aforementioned, topic is the data category mechanisms in Kafka. The streaming data are published to a topic, and the prediction results are send back to another Kafka topic for visualization.
-
-The Consumer 2 in \Fref{fig:kafka} is actually the core component of the LSTMs-autoencoder model. Once the initialized model is available, the online phase is then start. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current batch is useful to store for later retraining. 
+The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the label provided by experts if available, or otherwise the model trust its prediction, and collect hard examples for retraining. Model will be retrained when the retraining condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current batch is useful to store for later retraining. 
 
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=10cm, height=5cm]{kafka}
-\caption[Data stream pipeline]{Data stream pipeline}
-\label{fig:kafka}
+\includegraphics[width=10cm, height=10cm]{flowchart}
+\caption[Online anomaly detection system flowchart]{Online anomaly detection system flowchart}
+\label{fig:flowchart}
 \end{figure}
 
-\begin{algorithm}[t]
+\begin{algorithm}[h]
 \SetKwInOut{Input}{input}
 \Input{performanceThreshold, retrainDataSize}
 
@@ -48,7 +46,7 @@ The LSTMs-Autoencoder is consist of two LSTM units, one as encoder and the other
 
 In order to let the whole process happen online, the model initialization also utilizes streaming data. Once a small subset of streaming data is available, hyperparameters are learned, and then another dataset that consists only of normal data is collected from stream used for training. Assume that once an anomaly detection task is determined, the anomalous state is explicit defined and a subset of anomalous data is available for model initialization. We split the normal data into four subsets, $N_1$ for hyperparameters tuning, $N_2$ for model training, $N_3$ for early stopping, and scoring parameters learning, $N_4$ for testing. And abnormal data are split into two subsets, $A_1$ for decision of anomaly score threshold, $A_2$ for testing.
 
-\subsection{Anomaly detection mechanism}
+\subsection{Online anomaly detection}
 \label{anomalydetection}
 The autoencoder reconstructs the input with its knowledge of normal data, so if the input data contains anomalies, the reconstruction error will be obviously large due to the lack of anomalous knowledge. For input $X^{(i)}$, the reconstruction error is 
 
@@ -65,7 +63,7 @@ a^{(i)}={(e^{(i)}-\mu)}^{T}{\Sigma}^{-1}{(e^{(i)}-\mu)}
 During the initialization phase, a anomaly score threshold $\tau$ is also learned using $N_3$ and $A_1$ as
 
 \begin{equation} \label{eq:threshold}
-\tau = argmax Auc(a(N_3),a(A_1))
+\tau = argmax AUC(a(N_3),a(A_1))
 \end{equation}
 
 The anomaly score of every instance in a window is compared with the threshold, and values over the threshold are predicted as anomalies. If a window contains more than $\tau_N$ anomalous values, this window is predicted as anomaly.

@@ -10,7 +10,7 @@ We use 5 datasets in our experiments, PowerDemand, SMTP, HTTP, SMTP+HTTP and For
 \begin{table}[ht] 
 \caption{Datasets information} 
 \centering      
-\begin{tabular}{c c c c}  % centered columns (4 columns) 
+\begin{tabular}{c c c c}  
 \hline\hline        
 Dataset & Size & Dimensionality & Anomaly proportion(\textperthousand) \\ [0.5ex] 
 \hline 
@@ -24,6 +24,15 @@ ForestCover & 581 012 & 32 & 3.53 \\ [1ex]
 \label{tab:dataset}  
 \end{table} 
 
+\section{Data stream configuration}
+\label{sec:datastream}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm, height=5cm]{kafka}
+\caption[Data stream Publisher-Consumer architecture]{Data stream Publisher-Consumer architecture}
+\label{fig:kafka}
+\end{figure}
 
 \section{Parameter tuning}
 \label{sec:parametertuning}
