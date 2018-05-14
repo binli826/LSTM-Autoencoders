@@ -16,7 +16,7 @@ The proposed model is a full flow from data stream generation, anomaly detection
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
-\Input{performanceThreshold, retrainDataSize}
+\Input{performanceThreshold \tau, retrainDataSize \M}
 
 \BlankLine 
 needRetraining = False\;
@@ -30,7 +30,7 @@ retrainBuffer = [ ]\;
 	\eIf{result >= performanceThreshold}{continue\;}{\eIf{label == "normal"}{retrainBuffer.append([B, label])\;}{continue\;}}
 	}
  }
- \caption{Pipeline}
+ \caption{OnlineAnomalyDetection}
 \label{alg:pipeline}
 \end{algorithm}
 

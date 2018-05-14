@@ -121,7 +121,6 @@ class Data_Helper(object):
                 n_list += [i for i in win.index]
             else:
                 a_list += [i for i in win.index]
-                
         '''
         # old version: iter all rows
         for index, row in data.iterrows():
@@ -153,7 +152,7 @@ class Data_Helper(object):
         sn = normal.iloc[:tmp*5*self.step_num,:]
         vn1 = normal.iloc[tmp*5*self.step_num:tmp*9*self.step_num,:]
         vn2 = normal.iloc[tmp*9*self.step_num:,:]
-        tn = normal.iloc[tmp*9*self.step_num:,:]
+        tn = normal.iloc[tmp*5*self.step_num:,:]
         
         va = anomaly#.iloc[0:tmp,:] if anomaly.index.size >tmp else anomaly[0:anomaly.index.size//2]
         ta = anomaly#.iloc[va.index.size:,:]

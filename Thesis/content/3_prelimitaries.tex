@@ -22,14 +22,14 @@ In order to feed the streaming data to LSTMs, the stream is accumulated to windo
 
 
 
-\section{Definition of anomlaies}
+\section{Definition of anomalies}
 \label{sec:Definition of anomalies}
 
 \textbf{Pointwise}: A data point (instance) is anomalous if this point is distant from other observations according to some specific measurement metrics. This is used in fine-grained anomaly detection tasks, that need to find out every single anomalous instance, e.g. credit card fraud detection, spam email detection.\\
 
 \textbf{Window-based}: A window is anomalous if the window contains one or more anomalous data points. For most of the window-based anomaly detection algorithm, they only calculate the anomaly score of a given window, it’s hard and sometimes not necessary to find out which data points in this window are those anomalies.\\
 
-In the anomlay detection experiments, normal data is treated as positive class and anomalies as negative class. The confusion matrix is shown in Table~\ref{tab:confusion}
+In the anomlay detection experiments, normal data is treated as positive class and anomalies as negative class. The confusion matrix is shown in Table~\ref{tab:confusion}.
 
 \begin{table}[h]
 \begin{center}
@@ -108,7 +108,7 @@ Deep LSTM RNNs are built by stacking multiple LSTM layers. Note that LSTM RNNs a
 \label{sec:Autoencoders}
 
 An autoencoder (\Fref{fig:autoencoder}) is an artificial neural network with symmetrical structure. Normally an autoencoder has at least one hidden layer that consists of less neurons than input and output layers. And the basic aim of autoencoders is to reconstruct its own input and learn a lower dimensional representation (encoding) of input data in the hidden layer. Moreover, the autoencoders are also used for anomaly detection by measuring the reconstruction error between inputs and predictions.
-Normally the component between input layer and hidden layer is called encoder, and the symmetrical component between hidden layer and output layer is called decoder. For input $\chi$, the objective function is to find weight vectors for encoder and decoder to minimize the reconstruction error (\ref{eq:autoencoder}).
+Normally the component between input layer and hidden layer is called encoder, and the symmetrical component between hidden layer and output layer is called decoder. For input $\chi$, the objective function is to find weight vectors for encoder and decoder to minimize the reconstruction error (Equation \ref{eq:autoencoder}).
 
 \begin{figure}[h]
 \centering
@@ -121,7 +121,7 @@ Normally the component between input layer and hidden layer is called encoder, a
 \begin{aligned}
 \Phi : &\chi \rightarrow H \\
 \Psi : &H \rightarrow \chi \\
-\phi, \Psi = &argmin \left \| \chi-(\Psi \circ \Phi)\chi \right \| 
+\Phi, \Psi = &argmin \left \| \chi-(\Psi \circ \Phi)\chi \right \|^2
 \end{aligned}
 \end{equation}
 
@@ -150,13 +150,13 @@ LSTMs-autoencoder has the same encoder-decoder architecture, while the neurons a
 \section{Streaming data generator: Apache Kafka}
 \label{sec:Streaming data generator: Apache Kafka}
 
-We utilize Apache Kafka as the streaming platform. Kafka is a widely used Publish/Subscribe architecture streaming system. It different from classical message queue technique with its fault tolerant, durable and large capacity properties. Different application or database can publich data to a specific topic of Kafka (topic is the data category mechanisms used in Kafka), and other processors can consume data from this topic (\Fref{fig:kafka}). In our experimental setting, the data source is static databases, Kafka generate real-time data stream pipeline as data source publish records to the experiment topic, and furthermore the stream of records will be consumed by different consumers like our analysis model, visualization model etc. This configuration can be easily scaled up to more complicated and demanding real world use cases. Each record in the Kafka stream pipeline is in the form of [Key, Value, Timestamp], where keys are used for positioning and values carry the data record.
+We utilize Apache Kafka as the streaming platform. Kafka is a widely used Publish/Subscribe architecture streaming system. It different from classical message queue technique with its fault tolerant, durable and large capacity properties. Different application or database can publich data to a specific topic of Kafka (topic is the data category mechanisms used in Kafka), and other processors can consume data from this topic (\Fref{fig:kafkadiagram}). In our experimental setting, the data source is static databases, Kafka generate real-time data stream pipeline as data source publish records to the experiment topic, and furthermore the stream of records will be consumed by different consumers like our analysis model, visualization model etc. This configuration can be easily scaled up to more complicated and demanding real world use cases. Each record in the Kafka stream pipeline is in the form of [Key, Value, Timestamp], where keys are used for positioning and values carry the data record.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=5cm, height=5cm]{kafkadiagram}
 \caption[Kafka diagram]{Kafka diagram\footnotemark}
-\label{fig:kafka}
+\label{fig:kafkadiagram}
 \end{figure}
 
 \footnotetext{From: https://kafka.apache.org/}

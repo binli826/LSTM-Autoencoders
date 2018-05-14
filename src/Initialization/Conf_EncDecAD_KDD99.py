@@ -13,18 +13,18 @@ class Conf_EncDecAD_KDD99(object):
     def __init__(self, training_data_source = "file", optimizer=None, decode_without_input=False):
         
         self.batch_num = 1
-        self.hidden_num = 40
+        self.hidden_num = 15
         self.step_num = 84
-        self.input_root ="C:/Users/Bin/Documents/Datasets/EncDec-AD dataset/power_data_labeled.csv"
-        self.iteration = 500
-        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/Try9_1_40_84/"
+        self.input_root ="C:/Users/Bin/Desktop/Thesis/dataset/power.csv"
+        self.iteration = 300
+        self.modelpath_root = "C:/Users/Bin/Desktop/Thesis/models/power/"
         
         self.modelmeta = self.modelpath_root + "_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_.ckpt.meta"
         self.modelpath_p = self.modelpath_root + "_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt"
         self.modelmeta_p = self.modelpath_root + "_"+str(self.batch_num)+"_"+str(self.hidden_num)+"_"+str(self.step_num)+"_para.ckpt.meta"
         self.decode_without_input =  False
-        self.data_helper_plot_path = "C:/Users/Bin/Desktop/Thesis/tmp/EncDecADModel_online_init/power_demand/"
-        self.training_set_size = 84*13#20000
+        self.data_helper_plot_path = "C:/Users/Bin/Desktop/Thesis/models/power/"
+        self.training_set_size = 84*12#20000
         # import dataset
         # The dataset is divided into 6 parts, namely training_normal, validation_1,
         # validation_2, test_normal, validation_anomaly, test_anomaly.

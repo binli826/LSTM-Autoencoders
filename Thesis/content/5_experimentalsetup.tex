@@ -5,7 +5,7 @@
 \section{Datasets}
 \label{sec:datasets}
 
-We use 5 datasets in our experiments, PowerDemand, SMTP, HTTP, SMTP+HTTP and ForestCover, those are widely used streaming datasets in the streaming data mining area \cite{encdecad}\cite{threaded}\cite{tan}. Statistical features are listed in  Table~\ref{tab:dataset}. PowerDemand is a small univariate time series that records the power demand over a period of one year. Weekdays’ demand is higher than weekends’ and daytime is higher than nights, demand of special days (e.g. festivals) are abnormal. We demonstrate a synthetic example with visualization using this dataset while the trends and anomalous states are relative obviously. SMTP, HTTP, SMTP+HTTP are streaming anomaly data extracted from KDD Cup 99 dataset. According to Tan et al. \cite{tan}, HTTP contains sudden surges of anomalies and SMTP does not, but possibly exhibits some distribution changes within the stream. Because of the difficulty to point out where the distribution changes occur in the stream, the HTTP+SMPT dataset is derived by connecting SMTP and HTTP, so that a distribution change is occurred when the communication protocol is switched. The ForestCover dataset is from the UCI repository, which contains 6 kinds of forest cover types. Similar as Dong et al. \cite{threaded}, we defined the smallest class Cottonwood/Willow with 2747 instances as anomaly, and the rest 5 classes as normal class with distribution changes.
+We use 5 datasets in our experiments, PowerDemand, SMTP, HTTP, SMTP+HTTP and ForestCover, those are widely used streaming datasets in the streaming data mining area \cite{encdecad}\cite{threaded}\cite{tan}. Statistical features are listed in  Table~\ref{tab:dataset}. PowerDemand is a small univariate time series that records the power demand over a period of one year. Weekdays’ demand is higher than weekends’ and daytime is higher than nights, demand of special days (e.g. festivals) are abnormal. The experimental data is an subsampling of original set. We demonstrate a synthetic example with visualization using this dataset while the trends and anomalous states are relative obviously. SMTP, HTTP, SMTP+HTTP are streaming anomaly data extracted from KDD Cup 99 dataset. According to Tan et al. \cite{tan}, HTTP contains sudden surges of anomalies and SMTP does not, but possibly exhibits some distribution changes within the stream. Because of the difficulty to point out where the distribution changes occur in the stream, the HTTP+SMPT dataset is derived by connecting SMTP and HTTP, so that a distribution change is occurred when the communication protocol is switched. The ForestCover dataset is from the UCI repository, which contains 6 kinds of forest cover types. Similar as Dong et al. \cite{threaded}, we defined the smallest class Cottonwood/Willow with 2747 instances as anomaly, and the rest 5 classes as normal class with distribution changes.
 
 \begin{table}[ht] 
 \caption{Datasets information} 
@@ -40,9 +40,16 @@ where “n” represents normal data and “a” represents abnormal data. And t
 \label{fig:kafka}
 \end{figure}
 
+
+
 \section{Data stream configuration}
 \label{sec:datastream}
 
+\begin{itemize}
+\item Kafka setup
+\item stream speed \& precessing speed
+\item deal with latency problem
+\end{itemize}
 
 
 \section{Parameter tuning}
@@ -60,6 +67,13 @@ REratio=\frac{ARE(G_a)}{ARE(G_n)}
 
 \begin{figure}[h]
 \centering
+	\begin {subfigure}[t]{0.45\textwidth}
+	\centering
+	\includegraphics[height=6cm]{power_gridsearch}
+	\caption{PowerDemand}
+	\label{fig:power}
+	\end{subfigure}
+	~
 	\begin {subfigure}[t]{0.45\textwidth}
 	\centering
 	\includegraphics[height=6cm]{http_gridsearch}
@@ -85,29 +99,29 @@ REratio=\frac{ARE(G_a)}{ARE(G_n)}
 \label{fig:gridsearch}
 \end{figure}
 
-As a result of grid search, the hyperparameter for different datasets is listed in 
+As a result of grid search, the hyperparameter for different datasets is listed in Table~\ref{tab:hyper}
 
 \begin{table}[h] 
 \caption{Hyperparameters} 
 \centering      
 \begin{tabular}{c c c c}  
 \hline\hline        
-Dataset & Window length & Hidden size & \#Streaming instance \\ [0.5ex] 
+Dataset & Window length & Hidden size & \#Grid Search instance \\ [0.5ex] 
 \hline 
-PowerDemand & 35 040 & 1 &  21.92\\  
-SMTP & 96 554 & 41 & 12.25  \\ 
-HTTP & 623 091 & 41  & 6.49  \\ 
-SMTP+HTTP & 719 645 & 41 & 7.26 \\ 
-ForestCover & 581 012 & 7 & 3.53 \\ [1ex]  
+PowerDemand & 80 & 15 & 1 000 \\  
+SMTP & 100 & 5 &  5 000 \\ 
+SMTP+HTTP & 100 & 5 & 5 000 \\ 
+HTTP & 30 & 5  &  10 000 \\ 
+ForestCover & 100 & 35 & 10 000 \\ [1ex]  
 \hline    
 \end{tabular}
 \label{tab:hyper}  
 \end{table} 
 
 
-\section{Baseline model}
-\label{baseline}
-EncdecAD offline
+\section{Evaluation metrics}
+\label{evaluation}
+
 
 
 
