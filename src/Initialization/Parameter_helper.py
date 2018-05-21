@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial.distance import mahalanobis,euclidean
 class Parameter_Helper(object):
-    
+    foo
     def __init__(self, conf):
         self.conf = conf
        
