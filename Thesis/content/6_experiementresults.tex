@@ -5,8 +5,30 @@
 \section{Anomaly detection performance}
 \label{sec:performance}
 
-AUC for each dataset\\
-False alarm count, miss alarm count
+
+\begin{table}[h] 
+\caption{Performance} 
+\centering      
+\begin{tabular}{c | c | c | c}  
+\hline  
+Dataset & AUC(without retraining) & AUC(with retraining) & \#retrain \\ 
+\hline 
+PowerDemand & 0.91 & 0.97 & 1  \\  
+\hline 
+SMTP &  &  &  \\ 
+\hline 
+SMTP+HTTP &  &  & \\ 
+\hline 
+HTTP &  &   &   \\ 
+\hline 
+ForestCover & &  & \\   
+\hline    
+\end{tabular}
+\label{tab:auc}  
+\end{table} 
+
+
+
 
 \section{Retraining}
 \label{sec:retraining}
