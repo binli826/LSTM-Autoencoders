@@ -5,6 +5,7 @@
 \section{Anomaly detection performance}
 \label{sec:performance}
 
+With parameters learned from \Fref{sec:parametertuning}, autoencoders are learned for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter retraining (\Fref{tab:performance}). 
 
 \begin{table}[h] 
 \caption{Performance} 
@@ -24,7 +25,7 @@ HTTP &  &   &   \\
 ForestCover & &  & \\   
 \hline    
 \end{tabular}
-\label{tab:auc}  
+\label{tab:performance}  
 \end{table} 
 
 
