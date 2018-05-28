@@ -28,14 +28,10 @@ ForestCover & &  & \\
 \label{tab:performance}  
 \end{table} 
 
+\section{Synthetic example}
+\label{sec:synthetic}
 
-
-
-\section{Retraining}
-\label{sec:retraining}
-
-\subsection{Power demand example}
-\label{sec:example}
+In order to show the benefit of model retraining along the stream, we demonstrate the online learning process of the small set Power demand in this section. The power demand dataset does not contain clear incremental or sudden concept drift, but the normal pattern still different slightly to each other. Lack of overall impression during the model initialization phase can lead to failures in the online phase. \Fref{fig:power_retraining} shows 3 continual days power demand in normal state. Due to the lack knowledge of current pattern, the autoencoder reconstructs the input time series high than desired. A model retraining process is triggered after the second day with last seen data, and the model performs well again on the third day.
 
 \begin{figure}[h]
 \centering
@@ -44,21 +40,39 @@ ForestCover & &  & \\
 \label{fig:power_retraining}
 \end{figure}
 
+During the online phase, the model is retrained two times, before batch No.10 and No. 27. After retraining, the normal data reconstruction error becomes lower while for abnormal data becomes higher, so that the classification becomes easier.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=10cm, height=4cm]{power_online_score}
+\caption[Power Demand dataset online learning scores]{Power Demand dataset online learning scores}
+\label{fig:power_online}
+\end{figure}
+
+After each retraining process, the parameters mu, sigma and threshold of anomaly scores are also updated. \Fref{fig:parachanges} shows the parameter changes over the stream. As there is no clear concept drift during the power demand stream, the parameters changes just slightly, and learn latest knowledge from the retrain buffer. 
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=6cm, height=4cm]{para_update}
+\caption[Online parameter updating]{Online parameter updating}
+\label{fig:parachanges}
+\end{figure}
+
+During the online phase, each normal window that is not given with a low enough anomaly score is appended to the retaining buffer to accumulate the retaining set. In order to find out what kind of data is used for retaining and how much retraining data is enough for model updating, we experiment with different retraining buffer size on the power demand stream.
 
 
-\subsection{Comparasion: with and without retraining}
-\label{sec: compare}
 
-performance and reconstruction error\\
-what data used for retraining
 
+\section{Model retraining}
+\label{sec:retraining}
 
 \subsection{Reaction of concept drift and distribution changes}
 \label{sec:reaction}
-observation of model perfermance around positions of concept drift and distribution changes 
+A main advantage of online model is its ability to take reaction against sudden data distributional changes in time. The SMTP+HTTP data set is composed by directly connect HTTP set after SMTP, so there is a sudden concept drift in between. The model is initialized with only SMTP data, so HTTP is completely new knowledge.
 
-\subsection{Running time analysis}
-\label{sec:time}
+Another experiment on concept drift is to detect, how the different kinds of forest cover types in the FOREST dataset, which are all treated as normal state except type 4, relative to the model updating.
+
+
 
 
 
