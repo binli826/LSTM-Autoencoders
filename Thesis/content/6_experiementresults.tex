@@ -68,9 +68,46 @@ During the online phase, each normal window that is not given with a low enough 
 
 \subsection{Reaction of concept drift and distribution changes}
 \label{sec:reaction}
-A main advantage of online model is its ability to take reaction against sudden data distributional changes in time. The SMTP+HTTP data set is composed by directly connect HTTP set after SMTP, so there is a sudden concept drift in between. The model is initialized with only SMTP data, so HTTP is completely new knowledge.
+A main advantage of online model is its ability to take reaction against sudden data distributional changes in time. The SMTP+HTTP data set is composed by directly connect HTTP set after SMTP, so there is a sudden concept drift in between. The model is initialized with only SMTP data, so HTTP is completely new knowledge.\n
 
-Another experiment on concept drift is to detect, how the different kinds of forest cover types in the FOREST dataset, which are all treated as normal state except type 4, relative to the model updating.
+
+Another experiment on concept drift is to detect, how the different kinds of forest cover types (type 1 to 7) in the FOREST dataset, which are all treated as normal state except type 4, are relative to the model updating. The FOREST model is trained with hidden size 45 and window length 20. In the beginning, 3000 windows are used for initialization, and 26050 windows comes as stream.  Every normal window contains more than 10 scores over threshold is treated as hard window and appended to retraining buffer. Also, every abnormal window is saved for threshold updating.  When retrain buffer size reaches 750, a retraining process will be triggered. The model is retrained 3 times over stream.
+
+\begin{figure}[h]
+\centering
+	\begin {subfigure}[t]{0.45\textwidth}
+	\centering
+	\includegraphics[height=4cm]{pie1}
+	\caption{Initialization dataset}
+	\label{fig:init}
+	\end{subfigure}
+	~
+	\begin {subfigure}[t]{0.45\textwidth}
+	\centering
+	\includegraphics[height=4cm]{pie2}
+	\caption{Retrain Buffer 1}
+	\label{fig:buf1}
+	\end{subfigure}
+	~
+	\begin {subfigure}[t]{0.45\textwidth}
+	\centering
+	\includegraphics[ height=4cm]{pie3}
+	\caption{Retrain Buffer 2}
+	\label{fig:buf2}
+	\end{subfigure}
+	~
+	\begin {subfigure}[t]{0.45\textwidth}
+	\centering
+	\includegraphics[height=4cm]{pie4}
+	\caption{Retrain buffer 3}
+	\label{fig:buf3}
+	\end{subfigure}
+
+	\caption[FOREST data initializaiton and retrain buffer data distribution]{FOREST data initializaiton and retrain buffer data distribution: N1 to N6 represent normal states from the 6 different cover type classes, and A represents anomaly, namely type4. (a) is the initialization data distribution and (b), (c), (d) are the three retrain buffers' data distribution. Outer rings are all seen data since last retraining and inner rings are the portions added to retrain buffer.}
+\label{fig:bufs}
+\end{figure}
+
+
 
 
 
