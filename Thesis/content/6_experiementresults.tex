@@ -66,12 +66,23 @@ During the online phase, each normal window that is not given with a low enough 
 \section{Model retraining}
 \label{sec:retraining}
 
-\subsection{Reaction of concept drift and distribution changes}
+\subsection{Reaction of sudden and drastic concept drift}
 \label{sec:reaction}
-A main advantage of online model is its ability to take reaction against sudden data distributional changes in time. The SMTP+HTTP data set is composed by directly connect HTTP set after SMTP, so there is a sudden concept drift in between. The model is initialized with only SMTP data, so HTTP is completely new knowledge.\n
+The main advantage of online model is its ability to take reaction against sudden data distributional changes in time. The SMTP+HTTP data set is composed by directly connect HTTP set after SMTP, so there is a sudden concept drift in between. The model is initialized with only SMTP data, so HTTP is completely unknown knowledge for the model. \Fref{fig:smtp+http} is a box plot of anomaly scores of normal instances from different part of the stream. The block B1 is  statistic of normal instances’ anomaly scores between the last model updating on the SMTP side and the concept drift happening, which is relative lower due to the good grasp of SMTP data. Once the concept drift takes place, namely, HTTP data arrives with the stream, more normal instances with higher anomaly score appears in B2. Although a retraining process is triggered soon after the concept drift, the normal instances’ anomaly scores still increase due to lack of HTTP instance. Gradually, with the increasing amount seen HTTP data, the model gives normal data lower anomaly score again during B4 to B6. As a result, we can observe that, when a sudden concept drift happened in the stream, our model needs only 3 to 4 times retraining with totally 3500 instances for retraining to master the new data distribution again.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=13cm, height=6cm]{smtp+http}
+\caption[Anomaly score box chart of SMTP+HTTP]{Anomaly score box chart of SMTP+HTTP}
+\label{fig:smtp+http}
+\end{figure}
 
-Another experiment on concept drift is to detect, how the different kinds of forest cover types (type 1 to 7) in the FOREST dataset, which are all treated as normal state except type 4, are relative to the model updating. The FOREST model is trained with hidden size 45 and window length 20. In the beginning, 3000 windows are used for initialization, and 26050 windows comes as stream.  Every normal window contains more than 10 scores over threshold is treated as hard window and appended to retraining buffer. Also, every abnormal window is saved for threshold updating.  When retrain buffer size reaches 750, a retraining process will be triggered. The model is retrained 3 times over stream.
+\subsection{Reaction of serried and slight concept drift}
+\label{sec:reaction}
+
+Sometimes concept drift over the stream are slight, periodically, and potentially repeated. A single slight concept drift may not be able to trigger the retraining, but new knowledge should be save to retraining buffer, so that once the model retrained with the fresh knowledge, the model should perform well when the same concept drift happens. We experiment with the FOREST dataset. There are 7 kinds of forest cover types as labels. We take the least type No.4 as anomaly while the rest 6 kinds as normal. Cover types appears alternately over the stream, so that it could be treated as slight concept drift.\\
+
+The model is trained with hidden size 45 and window length 20. In the beginning, 3000 windows are used for initialization, and 26050 windows comes as stream.  Every normal window contains more than 10 scores over threshold is treated as hard window and appended to retraining buffer. Also, every abnormal window is saved for threshold updating.  When retrain buffer size reaches 750, a retraining process will be triggered. The model retraining is triggered 3 times over stream. 
 
 \begin{figure}[h]
 \centering
