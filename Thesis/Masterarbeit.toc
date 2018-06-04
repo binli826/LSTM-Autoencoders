@@ -1,5 +1,0 @@
-\babel@toc {english}{}
-\babel@toc {english}{}
-\contentsline {chapter}{\numberline {1}Einleitung}{1}{chapter.1}
-\contentsline {section}{\numberline {1.1}Handbuch}{1}{section.1.1}
-\contentsline {chapter}{\numberline {2}Weltherrschaft}{3}{chapter.2}

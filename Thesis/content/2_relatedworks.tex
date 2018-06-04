@@ -1,7 +1,7 @@
 \chapter{Related works}
 \label{chap:relatedworks}
 
-In this section, we present a survey on previous works in anomaly detection with classical machine learning models and with autoencoders, as well as studies of neural network updating along with streaming data.
+In this section, we present a survey on previous works in anomaly detection. Both batch models and online models are listed with respectively traditional machine learning approaches and neural network or autoencoder based approaches. And for the online case, we also survey works on neural network updating approaches.
 
 \section{Batch model}
 \label{sec:batch}
@@ -44,7 +44,7 @@ In further researches, Malhotra et al. \cite{lstmad}\cite{encdecad} develop the 
 \subsection{classical online approaches}
 \label{sec:classical online approaches}
 
-Recently, more and more attention is paid to streaming data mining, and many efficient classical models are modified to fit the online learning property. Cui et al. \cite{cui} proposed online anomaly detection approach with grid-based summarization and clustering algorithm. They show good performance in KDD dataset for network attack detection. However, they didn’t take consider only isolated data point without any temporal information measuring. Another streaming data anomaly detection framework by Tang et al. \cite{onlinelof} use sliding window to involve the contextual dependency and temporal changes in the stream. The anomaly detection algorithm is a modified version of LOF while LOF’s high time complexity can not be directly employed to streaming data. They use comentropy to filter out most normal windows, and feed the rest to LOF.
+Recently, more and more attention is paid to streaming data mining, and many efficient classical models are modified to fit the online learning property. Cui et al. \cite{cui} proposed online anomaly detection approach with grid-based summarization and clustering algorithm, which can detect anomaly immediatly when data arrives. For the seen streaming data, they used summarization algorithm to reduce the run time and memory consumption over stream. And they give anomaly scores to instances to describe concrete anomaly degree. They show good performance in KDD dataset for network attack detection. However, they didn’t take consider only isolated data point without any temporal information measuring. Another streaming data anomaly detection framework by Tang et al. \cite{onlinelof} use sliding window to involve the contextual dependency and temporal changes in the stream. The anomaly detection algorithm is a modified version of LOF while LOF’s high time complexity can not be directly employed to streaming data. They use comentropy to filter out most normal windows, and feed the rest to LOF.
 
 \subsection{Autoencoder-based online approaches}
 \label{sec:Autoencoder-based online approaches }

@@ -4,7 +4,7 @@
 \section{Framework overview}
 \label{sec:framework}
 
-The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the label provided by experts if available, or otherwise the model trust its prediction, and collect hard examples for retraining. Model will be retrained when the retraining condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current batch is useful to store for later retraining. 
+The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the label provided by experts if available, or otherwise the model trust its prediction, and collect hard examples for retraining. Model will be retrained when the retraining condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current window is useful to store for later retraining. If so, the window of data will be appended to the retrain buffer, with the instance order not been destroryed. As a consequence of anomalies' rare appearance, we keep all seen anomalous windows for determination of anomaly score threshold during retraining. 
 
 
 \begin{figure}[h]
@@ -16,20 +16,29 @@ The proposed model is a full flow from data stream generation, anomaly detection
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
-\Input{performanceThreshold $\tau$, retrainDataSize M}
+\Input{normal buffer size: SN, abnormal buffer size: SA,performance threshold: P}
 
 \BlankLine 
 needRetraining = False\;
-retrainBuffer = [ ]\;
- \While{Batch data available}{
-  batch, label = getBatchData()\;
-  \eIf{len(retrainBuffer) == retrainDataSize}{retrain(retrainBuffer)\;}
+normalBuffer = [ ]\;
+abnormalBuffer = [ ]\;
+\BlankLine 
+ \While{True}{
+%	\eIf{len(retrainBuffer) == retrainDataSize}{retrain(retrainBuffer)\;}
+	 \eIf{len(normalBuffer) >= SN $\textbf{and}$ len(abnormalBuffer) >= SA}{retrain(normalBuffer, abnormalBuffer)\;}
 	{
-   	pred = predict(batch)\;
-	result = evaluation(pred,label)\;
-	\eIf{result >= performanceThreshold}{continue\;}{\eIf{label == "normal"}{retrainBuffer.append([B, label])\;}{continue\;}}
+	data, labels = getBatchData()\;
+   	pred = predict(data)\;
+	result = evaluation(pred,labels)\;
+	\ForEach {window $\textbf{in}$ data}{
+	\If{$'$anomaly$ '$ $\textbf{in}$ label[window$.$index]}{abnormalBuffer$.$append(window)}
+	\eIf{result[window$.$index] $>=$ P}{continue\;}{\eIf{label == $'$normal$ '$}{normalBuffer$.$append(window)\;}{continue\;}}
+	
 	}
- }
+
+	}
+	}
+
  \caption{OnlineAnomalyDetection}
 \label{alg:pipeline}
 \end{algorithm}
@@ -78,7 +87,7 @@ However, if we consider using the model for streaming data, the autoencoder migh
 \subsection{Retraining dataset}
 \label{data}
 
-Normally when the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub thread collects data instances continuously from the Kafka publisher, and in the meantime, the main thread is working on real-time anomaly detection as long as mini-batches of data is provided by the sub thread. For each single window in the mini-batch, every instance is reconstructed and calculated the anomaly score using \Fref{eq:score}. The system maintains two data buffers for retraining (\Fref{fig:buffer}), one for normal data, and the other one for anomalies.Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, and we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. Normal data windows with average mean error over $\mu$ are regarded as not good mastered and will be appended into the normal buffer for retraining. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for threshold determination during retraining. To this end, when a retraining process is triggered, only wrong predicted normal data, those not well mastered, are used for retraining.
+Normally when the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub thread collects data instances continuously from the Kafka publisher, and in the meantime, the main thread is working on real-time anomaly detection as long as mini-batches of data is provided by the sub thread. For each single window in the mini-batch, every instance is reconstructed and calculated the anomaly score using \Fref{eq:score}. The system maintains two data buffers for retraining (\Fref{fig:buffer}), one for normal data, and the other one for anomalies.Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, and we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. Normal data windows with too much high score instances are regarded as not good mastered and will be appended into the normal buffer for retraining. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for threshold determination during retraining. To this end, when a retraining process is triggered, only not well mastered normal data are used for retraining.
 
 \begin{figure}[h]
 \centering
@@ -96,16 +105,22 @@ During the online processing, if the system detected that the model doesn’t fi
 \subsection{Model retraining}
 \label{retraining}
 
-There are two retraining strategies, continue training and start from scratch. Once the retraining is triggered, the system examines the normal buffer. The normal buffer is divided into two parts, hard examples and extreme hard examples with the boundary being $\mu+2\sigma$. When the number of extreme hard examples in the buffer exceeds a specific proportion, it means that a great change happened in the stream, and the model is retrained from scratch. Otherwise the model still contains valuable information, so it is continue trained with the buffer data.\\
+Once retraining process is triggered, the model will be retrained using data from retrain buffers. Windows of normal buffer are divided into retraining set and retraining validation set. The retraining is a continuation of the initialization or previous retraining with identical data format. Parameters mu, sigma as well as threshold are learned from the retraining validation set and anomaly buffer data. The parameters are learned in the same way as in initialization phase.
 
-Alternative: We use the hidden vector as the low-dimensional representation of input data. Hidden vector of all normal data is used to check, whether a new coming data is similar to the previous normal data.\\
+\begin{algorithm}[h]
+\SetKwInOut{Input}{input}
+\Input{normal buffer: nBuf, abnormal buffer: aBuf}
 
-Similar to the model initial training, parameters $\mu$ and $\sigma$ are learned from a sub retraining set. They are combined with the previous parameters to generate the new one. If the anomaly buffer is large enough, a new threshold will also be learned, and combined with the previous value.
+\BlankLine 
+retrainSet, valSetN = split(nBuf)\;
+valSetA = aBuf\;
 
+ModelReTrain(retrainSet)\;
+mu, sigma, threshold = getParameters(valSetN, valSetA)
 
-\subsection{Optimizer}
-\label{optimizer}
-Adam, BPTT
+\caption{retrain}
+\label{alg:retrain}
+\end{algorithm}
 
 
 
