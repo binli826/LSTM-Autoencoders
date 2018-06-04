@@ -25,11 +25,33 @@ In order to feed the streaming data to LSTMs, the stream is accumulated to windo
 \section{Definition of anomalies}
 \label{sec:Definition of anomalies}
 
-\textbf{Pointwise}: A data point (instance) is anomalous if this point is distant from other observations according to some specific measurement metrics. This is used in fine-grained anomaly detection tasks, that need to find out every single anomalous instance, e.g. credit card fraud detection, spam email detection.\\
+\textbf{Pointwise}: A data point (instance) is anomalous(e.g. \Fref{fig:point}) if this point is distant from other observations according to some specific measurement metrics. This is used in fine-grained anomaly detection tasks, that need to find out every single anomalous instance, e.g. credit card fraud detection, spam email detection.\\
 
-\textbf{Window-based}: A window is anomalous if the window contains one or more anomalous data points. For most of the window-based anomaly detection algorithm, they only calculate the anomaly score of a given window, it’s hard and sometimes not necessary to find out which data points in this window are those anomalies.\\
+\textbf{Window-based}: Sometimes, a data point is apparently normal, but this point, or potentially together with its neighbors violates the overall periodicity or other character of the time series, it or they are also anomaly, which is called window-based anomaly, e.g. \Fref{fig:window}.\\
+\begin{figure}[h]
+\centering
+	\begin {subfigure}[t]{8cm}
+	\centering
+	\includegraphics[height=6cm]{anomaly_point}
+	\caption{Pointwise anomaly}
+	\label{fig:point}
+	\end{subfigure}
+	~
+	\begin {subfigure}[t]{8cm}
+	\centering
+	\includegraphics[ height=6cm]{anomaly_window}
+	\caption{Window-based anomaly}
+	\label{fig:window}
+	\end{subfigure}
+	\caption[Anomaly types]{Anomaly types}
+\label{fig:anomalytypes}
 
-In the anomlay detection experiments, normal data is treated as positive class and anomalies as negative class. The confusion matrix is shown in Table~\ref{tab:confusion}.
+\end{figure}
+
+
+
+
+In the anomlay detection experiments, abnormal data is treated as positive class and normal as negative class. 
 
 \begin{table}[h]
 \begin{center}
@@ -38,17 +60,17 @@ In the anomlay detection experiments, normal data is treated as positive class a
 \cline{3-4}
 \multicolumn{2}{c|}{}&Normal&Abnormal\\
 \cline{2-4}
-\multirow{2}{*}{Prediction}& Normal & $TP$ & $FP$\\
+\multirow{2}{*}{Prediction}& Normal & $TN$ & $FN$\\
 \cline{2-4}
-& Abnormal & $FN$ & $TN$\\
+& Abnormal & $FP$ & $TP$\\
 \cline{2-4}
 \end{tabular}
 \end{center}
-\label{tab:confusion}
+\label{tab:conf}
 \caption{Confusion matrix}
 \end{table}
 
-The target is to achieve higher true positive rate (equation \ref{eq:tpr}, predict normal data correctly) and while remain lower false positive rate (equation \ref{eq:fpr}, miss classify anomalies as normal). The evaluation metric is Area Under the Curve (AUC), where curve represents the receiver operating characteristic curve, and is created by plotting the true positive rate against the false positive rate at various threshold settings.
+The target is to achieve higher true positive rate (equation \ref{eq:tpr}, detect anomalies correctly) and while remain lower false positive rate (equation \ref{eq:fpr}, wrong alarm). The evaluation metric is Area Under the Curve (AUC), where curve represents the receiver operating characteristic curve, and is created by plotting the true positive rate against the false positive rate at various threshold settings.
 \begin{equation} \label{eq:tpr}
 TPR =\dfrac{TP}{TP+FN}
 \end{equation}
@@ -146,6 +168,8 @@ LSTMs-autoencoder has the same encoder-decoder architecture, while the neurons a
 \label{fig:encdecad}
 
 \end{figure}
+
+
 
 \section{Streaming data generator: Apache Kafka}
 \label{sec:Streaming data generator: Apache Kafka}
