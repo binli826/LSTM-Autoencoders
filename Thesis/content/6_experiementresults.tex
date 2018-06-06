@@ -20,9 +20,9 @@ SMTP & 0.68 & 0.69 & 7 \\
 \hline 
 SMTP+HTTP &  &  & \\ 
 \hline 
-HTTP &  &   &   \\ 
+HTTP & 0.74 &  0.84 &  3 \\ 
 \hline 
-ForestCover &0.61&0.73 & 5\\   
+ForestCover &0.69&0.77 & 12\\   
 \hline    
 \end{tabular}
 \label{tab:performance}  
@@ -80,7 +80,7 @@ The main advantage of online model is its ability to take reaction against sudde
 \subsection{Reaction of serried and slight concept drift}
 \label{sec:reaction}
 
-Sometimes concept drift over the stream are slight, periodically, and potentially repeated. A single slight concept drift may not be able to trigger the retraining, but new knowledge should be saved to retraining buffer, so that once the model retrained with the fresh knowledge, the model should perform well when the same concept drift happens. We experiment with the FOREST dataset. There are 7 kinds of forest cover types as labels. We take the least type No.4 as anomaly while the rest 6 kinds as normal. Cover types appears alternately over the stream, so that it could be treated as slight concept drift.\\
+Sometimes concept drift over the stream are slight, periodically, and potentially repeated. A single slight concept drift may not be able to trigger the retraining, but new knowledge should be saved into retraining buffer, so that once the model retrained with the fresh knowledge, the model should perform well when the same concept drift happens. We experiment with the FOREST dataset. There are 7 kinds of forest cover types as labels. We take the least type No.4 as anomaly while the rest 6 kinds as normal. Cover types appears alternately over the stream, so that it could be treated as slight concept drift.\\
 
 The model is trained with hidden size 45 and window length 20. In the beginning, 3000 windows are used for initialization, and 26050 windows comes as stream.  Every normal window contains more than 10 scores over threshold is treated as hard window and appended to retraining buffer. Also, every abnormal window is saved for threshold updating.  When retrain buffer size reaches 750, a retraining process will be triggered. The model retraining is triggered 3 times over stream. 
 
