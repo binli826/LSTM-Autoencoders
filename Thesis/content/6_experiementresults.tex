@@ -5,7 +5,7 @@
 \section{Anomaly detection performance}
 \label{sec:performance}
 
-With parameters learned from \Fref{sec:parametertuning}, autoencoders are learned for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter retraining (\Fref{tab:performance}). 
+With parameters learned from \Fref{sec:parametertuning}, autoencoders are learned for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter retraining (\Fref{tab:performance}). The Power demand set retrain trigger dependes on the batch performance, and for the rest datasets, retraining only triggered when retrain buffers are full.
 
 \begin{table}[h] 
 \caption{Performance} 
@@ -16,13 +16,11 @@ Dataset & AUC(without retraining) & AUC(with retraining) & \#retrain \\
 \hline 
 PowerDemand & 0.91 & 0.97 & 1  \\  
 \hline 
-SMTP & 0.68 & 0.69 & 7 \\ 
-\hline 
-SMTP+HTTP &  &  & \\ 
-\hline 
 HTTP & 0.74 &  0.84 &  3 \\ 
 \hline 
-ForestCover &0.69&0.77 & 12\\   
+SMTP & 0.76 &  0.82 &  2 \\ 
+\hline 
+ForestCover &0.69&0.77 & 3\\   
 \hline    
 \end{tabular}
 \label{tab:performance}  
@@ -31,7 +29,12 @@ ForestCover &0.69&0.77 & 12\\
 \section{Synthetic example}
 \label{sec:synthetic}
 
-In order to show the benefit of model retraining along the stream, we demonstrate the online learning process of the small set Power demand in this section. The power demand dataset does not contain clear incremental or sudden concept drift, but the normal pattern still different slightly to each other. Lack of overall impression during the model initialization phase can lead to failures in the online phase. \Fref{fig:power_retraining} shows 3 continual days power demand in normal state. Due to the lack knowledge of current pattern, the autoencoder reconstructs the input time series high than desired. A model retraining process is triggered after the second day with last seen data, and the model performs well again on the third day.
+In order to show the benefit of model retraining along the stream, we demonstrate the online learning process of the small set Power demand in this section. The power demand dataset does not contain clear incremental or sudden concept drift, but the normal pattern still different slightly to each other. Lack of overall impression during the model initialization phase can lead to failures in the online phase. 
+
+\subsection{Reaction of concept drift}
+\label{sec:reaction}
+
+\Fref{fig:power_retraining} shows 3 continual days power demand in normal state. Due to the lack knowledge of current pattern, the autoencoder reconstructs the input time series high than desired on day 1(left diagram). This could be caused by seasonal changes on the power demand, which is slightly, gradually, and not able to cause misclassify directly. However, the increase of normal data reconstruction error makes the margin between two classification classes smaller, and harder to make decision. As a consequence, the model retraining process is triggered after the second day with last seen data in the retrain buffer, and the model performs well again on the third day.
 
 \begin{figure}[h]
 \centering
@@ -40,12 +43,15 @@ In order to show the benefit of model retraining along the stream, we demonstrat
 \label{fig:power_retraining}
 \end{figure}
 
+\subsection{Retaining}
+\label{sec:retrainig}
+
 During the online phase, the model is retrained two times, before batch No.10 and No. 27. After retraining, the normal data reconstruction error becomes lower while for abnormal data becomes higher, so that the classification becomes easier.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=10cm, height=4cm]{power_online_score}
-\caption[Power Demand dataset online learning scores]{Power Demand dataset online learning scores}
+\caption[Power Demand dataset online learning scores]{Power Demand dataset online learning scores: For each window, the anomaly score is the highest pointwise scores within the window}
 \label{fig:power_online}
 \end{figure}
 

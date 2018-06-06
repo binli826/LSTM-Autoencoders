@@ -111,7 +111,7 @@ Another retraining trigger strategy is designed for smaller data set, where the 
 \subsection{Model retraining}
 \label{retraining}
 
-Once retraining process is triggered, the model will be retrained using data from retrain buffers. Windows of normal buffer are divided into retraining set and retraining validation set. The retraining is a continuation of the initialization or previous retraining with identical data format. Parameters mu, sigma as well as threshold are learned from the retraining validation set and anomaly buffer data. The parameters are learned in the same way as in initialization phase.
+Once retraining process is triggered, the model will be retrained using data from retrain buffers. Windows of normal buffer are divided into retraining set and retraining validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model retraining are all done in memory. The retraining is a continuation of the initialization or previous retraining with identical data format. Parameters mu, sigma as well as threshold are learned from the retraining validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the retraining using normal validation set as well.
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
@@ -121,7 +121,7 @@ Once retraining process is triggered, the model will be retrained using data fro
 retrainSet, valSetN = split(nBuf)\;
 valSetA = aBuf\;
 
-ModelReTrain(retrainSet)\;
+Train(retrainSet)\;
 mu, sigma, threshold = getParameters(valSetN, valSetA)
 
 \caption{retrain}
