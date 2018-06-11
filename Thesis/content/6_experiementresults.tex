@@ -5,7 +5,7 @@
 \section{Anomaly detection performance}
 \label{sec:performance}
 
-With parameters learned from \Fref{sec:parametertuning}, autoencoders are trained for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter updating (\Fref{tab:performance}). The Power demand set retrain trigger depends on the batch performance, and for the rest datasets, retraining only triggered when retrain buffers are full. The retraining brings overall performance improvement on all datasets comparing to stationary models.
+With parameters learned from \Fref{sec:parametertuning}, autoencoders are trained for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter updating (\Fref{tab:performance}). The Power demand set retrain trigger depends on the batch performance, and for the rest datasets, retraining only triggered when retrain buffers are full. The retraining brings overall performance improvement on all datasets comparing to stationary models. Especially in the SMTP+HTTP dataset, the stationary without learning concept drifted knowledge performs clearly worth than the model with updating.
 
 \begin{table}[h] 
 \caption{Performance} 
@@ -16,15 +16,36 @@ Dataset & AUC(without retraining) & AUC(with retraining) & \#retrain \\
 \hline 
 PowerDemand & 0.91 & 0.97 & 1  \\  
 \hline 
-HTTP & 0.74 &  0.84 &  3 \\ 
+SMTP & 0.94 &  0.98 &  2 \\ 
 \hline 
-SMTP & 0.76 &  0.82 &  2 \\ 
+HTTP & 0.76 &  0.86 &  2 \\ 
+\hline
+SMTP+HTTP & 0.64 & 0.85 & 4 \\
 \hline 
-ForestCover &0.69&0.77 & 3\\   
+ForestCover &0.67&0.74 & 3\\   
 \hline    
 \end{tabular}
 \label{tab:performance}  
 \end{table} 
+In order to compare the performance with and without retraining, and after each retraining, another example is to calculate the AUC value for each specified time period. As Shown in \Fref{fig:auc_retrain}, the x-axis is the periods before first retraining(shown as P1 in each subplot), between first and second retraining, and so on. For each dataset, we compare the AUC value of stationary model (trained with only initialization set) and adaptive model (online updated). For most cases, the adaptive models outperform stationary models, which shows the models profits from the knowledge updating over streaming data. To be notice that the SMTP+HTTP set contains sudden concept drift around P3, which leads to a sharp decline of the stationary model. In the meantime, the adaptive model is slightly influenced by the mixed knowledge at P3 but keeps outstanding performance when the stream turned to HTTP side.\\
+\begin{figure}[h]
+\centering
+\includegraphics[width=15cm, height=15cm]{auc_retrain}
+\caption[AUC comparation between stationary and adaptive models over stream]{AUC comparation between stationary and adaptive models over stream: The x-axes represent specific periods over stream. For example, P1 is the period from beginning to the first retraining, and P2 is the the period between first and second retraining etc.}
+\label{fig:auc_retrain}
+\end{figure}
+
+\Fref{fig:runtime} shows the run time used for both stationary models and adaptive models for each data set. The retraining takes more time for retraining in HTTP, SMTP+HTTP and FORESR are due to that larger datasets take more time for prediction, and can trigger more retraining process, and for each retraining, the retrain buffers also contains larger retraining sets.
+
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=15cm, height=7cm]{runtime}
+\caption[Run time statistics]{Run time statistics}
+\label{fig:runtime}
+\end{figure}
+
 
 \section{Synthetic example}
 \label{sec:synthetic}
