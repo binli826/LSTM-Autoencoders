@@ -5,7 +5,7 @@
 \section{Anomaly detection performance}
 \label{sec:performance}
 
-With parameters learned from \Fref{sec:parametertuning}, autoencoders are learned for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter retraining (\Fref{tab:performance}). The Power demand set retrain trigger dependes on the batch performance, and for the rest datasets, retraining only triggered when retrain buffers are full.
+With parameters learned from \Fref{sec:parametertuning}, autoencoders are trained for each dataset with the beginning of streaming data. The anomaly detection performance is described by AUC. For each dataset, we compare the AUC of online phase that without and with continuously model and parameter updating (\Fref{tab:performance}). The Power demand set retrain trigger depends on the batch performance, and for the rest datasets, retraining only triggered when retrain buffers are full. The retraining brings overall performance improvement on all datasets comparing to stationary models.
 
 \begin{table}[h] 
 \caption{Performance} 
