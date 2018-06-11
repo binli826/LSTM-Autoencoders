@@ -40,6 +40,8 @@ where “n” represents normal data and “a” represents abnormal data. And t
 \label{fig:kafka}
 \end{figure}
 
+For each dataset, we use half data for initialization and the other half for online prediction. The experimental results reported are averaged over 10 runs. For each run, the model is given with random initial weights. Each subset used for training and prediction are preprocessed with locally, in order to scale them into $[0,1]$ to fit the LSTM activation function.
+
 
 \section{Parameter tuning}
 \label{sec:parametertuning}
