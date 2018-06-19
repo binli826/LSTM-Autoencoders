@@ -4,7 +4,7 @@
 \section{Framework overview}
 \label{sec:framework}
 
-The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the label provided by experts if available, or otherwise the model trust its prediction, and collect hard examples for retraining. Model will be retrained when the retraining condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current window is useful to store for later retraining. If so, the window of data will be appended to the retrain buffer, with the instance order not been destroryed. As a consequence of anomalies' rare appearance, we keep all seen anomalous windows for determination of anomaly score threshold during retraining. 
+The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the label provided by experts if available, or otherwise the model trust its prediction, and collect hard examples for updating. Model will be updated when the updating condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current window is useful to store for later updating. If so, the window of data will be appended to the updating buffer, with the instance order not been destroryed. As a consequence of anomalies' rare appearance, we keep all seen anomalous windows for determination of anomaly score threshold during updating. 
 
 
 \begin{figure}[h]
@@ -19,13 +19,13 @@ The proposed model is a full flow from data stream generation, anomaly detection
 \Input{normal buffer size: SN, abnormal buffer size: SA,performance threshold: P}
 
 \BlankLine 
-needRetraining = False\;
+needUpdating = False\;
 normalBuffer = [ ]\;
 abnormalBuffer = [ ]\;
 \BlankLine 
  \While{True}{
-%	\eIf{len(retrainBuffer) == retrainDataSize}{retrain(retrainBuffer)\;}
-	 \eIf{len(normalBuffer) >= SN $\textbf{and}$ len(abnormalBuffer) >= SA}{retrain(normalBuffer, abnormalBuffer)\;}
+%	\eIf{len(updatingBuffer) == updateDataSize}{update(updatingBuffer)\;}
+	 \eIf{len(normalBuffer) >= SN $\textbf{and}$ len(abnormalBuffer) >= SA}{update(normalBuffer, abnormalBuffer)\;}
 	{
 	data, labels = getBatchData()\;
    	pred = predict(data)\;
@@ -84,48 +84,48 @@ The anomaly score of every instance in a window is compared with the threshold, 
 \label{sec:Onlinelearning}
 However, if we consider using the model for streaming data, the autoencoder might get outdated because of the relative small and simple initialization dataset and concept drift happed along with time. So the update of model is necessary. In this section, we introduce the incremental learning function of the LSTMs-Autoencoder.
 
-\subsection{Retraining dataset}
+\subsection{Updating dataset}
 \label{data}
 
-Once the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub thread collects data instances continuously from the stream, and in the meantime, the main thread is working on real-time anomaly detection as long as mini-batches of data is provided by the sub thread. For each single window in the mini-batch, every instance is reconstructed and calculated the anomaly score using \Fref{eq:score}. The system maintains two data buffers for retraining (\Fref{fig:buffer}), one for normal data, and the other one for anomalies. Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, and we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. After each batch, the label for each data window is determined by either expert or the model itself. We predefine a performance threshold for normal data. Normal data windows that containing more that performance threshold over-anomaly-score-threshold instances are regarded as not good mastered and will be appended into the normal buffer for retraining. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for score threshold determination during retraining. \\
+Once the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub thread collects data instances continuously from the stream, and in the meantime, the main thread is working on real-time anomaly detection as long as mini-batches of data is provided by the sub thread. For each single window in the mini-batch, every instance is reconstructed and calculated the anomaly score using \Fref{eq:score}. The system maintains two data buffers for updating (\Fref{fig:buffer}), one for normal data, and the other one for anomalies. Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, and we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. After each batch, the label for each data window is determined by either expert or the model itself. We predefine a performance threshold for normal data. Normal data windows that containing more that performance threshold over-anomaly-score-threshold instances are regarded as not good mastered and will be appended into the normal buffer for updating. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for score threshold determination during updating. \\
 
-Because the out-of-date buffer not might be collect from previous concept drift time period, and not benefits to current retraining, we maintain the retain buffers with a queue structure, so that only a specific amount of most fresh data can stay in the buffer. To this end, when a retraining process is triggered, only not well mastered fresh normal data are used for retraining.
+Because the out-of-date buffer not might be collect from previous concept drift time period, and not benefits to current updating, we maintain the retain buffers with a queue structure, so that only a specific amount of most fresh data can stay in the buffer. To this end, when a updating process is triggered, only not well mastered fresh normal data are used for updating.
 
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=10cm, height=5cm]{buffer}
-\caption[Retraining data buffer]{Retraining data buffer}
+\caption[Updating data buffer]{Updating data buffer}
 \label{fig:buffer}
 \end{figure}
 
 
-\subsection{Retraining trigger}
+\subsection{Updating trigger}
 \label{trigger}
 
-During the online processing, if the system detected that the model doesn’t fit the current data any more, then the retraining is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need retraining to fit the latest data, but still lack of anomaly data in the buffer to update the threshold. To this end, we trigger the retraining so long as the anomaly buffer is not empty. If the anomaly data are not enough to make up a single batch, then we duplicate the anomaly buffer until the batch size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is retrained in a sub thread while the main thread keeps processing the stream.\\
-The first retraining trigger strategy depends on the buffer size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is retrained in a sub thread while the main thread keeps processing the stream. The approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the retrain buffers, and trigger retraining in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, retraining is not directly depends on the real-time prediction performance. \\
-Another retraining trigger strategy is designed for smaller data set, where the waiting time of retrain buffer full might be long after concept drift happening. During the waiting time, there can be other concept drifts, and the prediction performance is suboptimal during this time period. So, for smaller data sets, the retraining trigger should directly relate to real-time performance. A simple way is, compare the batch performance with the first batch after last retraining or streaming beginning. The reason is, the model is only retrained with normal data, therefore every retraining brings new knowledge to the model, and improve the performance, so the batch performance should at least same as or better that the first batch performance, otherwise it indicates concept drift.\\
+During the online processing, if the system detected that the model doesn’t fit the current data any more, then the updating is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need updating to fit the latest data, but still lack of anomaly data in the buffer to update the threshold. To this end, we trigger the updating so long as the anomaly buffer is not empty. If the anomaly data are not enough to make up a single batch, then we duplicate the anomaly buffer until the batch size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream.\\
+The first updating trigger strategy depends on the buffer size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream. The approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, updating is not directly depends on the real-time prediction performance. \\
+Another updating trigger strategy is designed for smaller data set, where the waiting time of updating buffer full might be long after concept drift happening. During the waiting time, there can be other concept drifts, and the prediction performance is suboptimal during this time period. So, for smaller data sets, the updating trigger should directly relate to real-time performance. A simple way is, compare the batch performance with the first batch after last updating or streaming beginning. The reason is, the model is only updated with normal data, therefore every updating brings new knowledge to the model, and improve the performance, so the batch performance should at least same as or better that the first batch performance, otherwise it indicates concept drift.\\
 
 
-\subsection{Model retraining}
-\label{retraining}
+\subsection{Model updating}
+\label{updating}
 
-Once retraining process is triggered, the model will be retrained using data from retrain buffers. Windows of normal buffer are divided into retraining set and retraining validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model retraining are all done in memory. The retraining is a continuation of the initialization or previous retraining with identical data format. Parameters mu, sigma as well as threshold are learned from the retraining validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the retraining using normal validation set as well.
+Once updating process is triggered, the model will be updated using data from the buffers. Windows of normal buffer are divided into updating set and updating validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model updating are all done in memory. The updating is a continuation of the initialization or previous updating with identical data format. Parameters mu, sigma as well as threshold are learned from the updating validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the updating using normal validation set as well.
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
 \Input{normal buffer: nBuf, abnormal buffer: aBuf}
 
 \BlankLine 
-retrainSet, valSetN = split(nBuf)\;
+updateSet, valSetN = split(nBuf)\;
 valSetA = aBuf\;
 
-Train(retrainSet)\;
+Train(updateSet)\;
 mu, sigma, threshold = getParameters(valSetN, valSetA)
 
-\caption{retrain}
-\label{alg:retrain}
+\caption{updating}
+\label{alg:update}
 \end{algorithm}
 
 
