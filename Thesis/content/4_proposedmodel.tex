@@ -4,7 +4,7 @@
 \section{Framework overview}
 \label{sec:framework}
 
-The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are learned, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for initial model training (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the label provided by experts if available, or otherwise the model trust its prediction, and collect hard examples for updating. Model will be updated when the updating condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current window is useful to store for later updating. If so, the window of data will be appended to the updating buffer, with the instance order not been destroryed. As a consequence of anomalies' rare appearance, we keep all seen anomalous windows for determination of anomaly score threshold during updating. 
+The proposed model is a full flow from data stream generation, anomaly detection with autoencoder-based model and online model incremental updating. \Fref{fig:flowchart} shows the general pipeline. The first received batches of streaming data are used for decision of model hyperparameters and the model initialization. Hyperparameters includes the hidden layer size, batch size, input window length as well as the number of epochs. Once the hyperparameters are determined, an autoencoder will be constructed and initialized with random weights. A subset of the streaming data is used for model initialization (only normal data used for training). Furthermore, the model is used for online anomaly detection, and evaluated based on the labels provided by experts. After evaluation, the data windows with bad performance are collected as hard examples in buffers for updating. Model will be updated when the updating condition is triggered. As shown in Algorithm \ref{alg:pipeline}, if a batch of streaming data is available, the model will start do prediction, evaluation, and check whether current window is useful to store for later updating. If so, the window of data will be appended to the updating buffer, with the instance order not been destroryed. As a consequence of anomalies' rare appearance, we keep all seen anomalous windows for determination of anomaly score threshold during updating. 
 
 
 \begin{figure}[h]
@@ -16,7 +16,7 @@ The proposed model is a full flow from data stream generation, anomaly detection
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
-\Input{normal buffer size: SN, abnormal buffer size: SA,performance threshold: P}
+\Input{normal buffer size: SN, performance threshold: P}
 
 \BlankLine 
 needUpdating = False\;
@@ -25,14 +25,20 @@ abnormalBuffer = [ ]\;
 \BlankLine 
  \While{True}{
 %	\eIf{len(updatingBuffer) == updateDataSize}{update(updatingBuffer)\;}
-	 \eIf{len(normalBuffer) >= SN $\textbf{and}$ len(abnormalBuffer) >= SA}{update(normalBuffer, abnormalBuffer)\;}
+	 \eIf{len(normalBuffer) >= SN $\textbf{and}$ len(abnormalBuffer) != 0}
+		{   
+			update(normalBuffer[-SN:], abnormalBuffer)\;
+			normalBuffer = []\;
+			abnormalBuffer = []\;
+			
+		}
 	{
 	data, labels = getBatchData()\;
    	pred = predict(data)\;
-	result = evaluation(pred,labels)\;
+	result = evaluate(pred,labels)\;
 	\ForEach {window $\textbf{in}$ data}{
 	\If{$'$anomaly$ '$ $\textbf{in}$ label[window$.$index]}{abnormalBuffer$.$append(window)}
-	\eIf{result[window$.$index] $>=$ P}{continue\;}{\eIf{label == $'$normal$ '$}{normalBuffer$.$append(window)\;}{continue\;}}
+	\eIf{AUC(result[window$.$index]) $>=$ P}{continue\;}{\eIf{label == $'$normal$ '$}{normalBuffer$.$append(window)\;}{continue\;}}
 	
 	}
 
@@ -51,45 +57,42 @@ abnormalBuffer = [ ]\;
 \subsection{Encoder-decoder architecture}
 \label{sec:Encoder-decoder architecture}
 
-The LSTMs-Autoencoder is consist of two LSTM units, one as encoder and the other one as decoder. The encoder inputs are fix length vectors with shape <MB, T, D>, where MB is the number of data windows contained in a mini-batch, T is the numbers of data points within each data window, and D represents the number of data dimensionality. Here, MB and T are learned as hyperparameter in the initialization phase. And on the decoder side, it will output exactly the same format data vector for each mini-batch. The LSTM unit copies its cell state for itself as one of the cell input at next timestamp. At the last timestamp of encoder, the cell state of LSTM unit is the hidden representation of the input data vector and copied to the decoder unit as initial cell state, so the hidden information can be passed to the decoder. The size of hidden layer representation vector, namely the size of cell state is another hyperparameter need to be learn in the initialization phase. The larger the hidden vector, the more information can be captured during the process, so it is a feature highly depends on the data. Similar to previous study \cite{seq2seq}, we also train the encoder and decoder with time series in reverse order. For example, if the input data fragment are data points from timestamp t1 to t2, then the decoder will predict data point at t2 at first, and then back to t1 step by step, while this trick makes the gradient escarpment between last state of encoder and first state of decoder smaller and easier to learn. \\
+The LSTMs-Autoencoder consists of two LSTM units, one as encoder and the other as decoder. The encoder inputs are fix length vectors with shape <MB, T, D>, where MB is the number of data windows contained in a mini-batch, T is the numbers of data points within each data window, and D represents the number of data dimensionality. Here, MB and T are learned as hyperparameter in the initialization phase. And on the decoder side, it is supposed to output exactly the same format data vector for each mini-batch. The LSTM unit copies its cell state for itself as one of the cell input at next timestamp. At the last timestamp of encoder, the cell state of LSTM unit is the hidden representation of the input data vector and copied to the decoder unit as initial cell state, so the hidden information can be passed to the decoder. The size of hidden layer representation vector, namely the size of cell state is another hyperparameter need to be learn in the initialization phase. The larger the hidden vector, the more information can be captured during the process, so it is a feature highly depends on the data. Similar to previous study \cite{seq2seq}, we also train the encoder and decoder with time series in reverse order. For example, if the input data fragment are data points from timestamp t1 to t2, then the decoder will predict data point at t2 at first, and then back to t1 step by step, while this trick makes the gradient escarpment between last state of encoder and first state of decoder smaller and easier to learn. \\
 
 In order to let the whole process happen online, the model initialization also utilizes streaming data. Once a small subset of streaming data is available, hyperparameters are learned, and then another dataset that consists only of normal data is collected from stream used for training. Assume that once an anomaly detection task is determined, the anomalous state is explicit defined and a subset of anomalous data is available for model initialization. We split the normal data into four subsets, $N_1$ for hyperparameters tuning, $N_2$ for model training, $N_3$ for early stopping, and scoring parameters learning, $N_4$ for testing. And abnormal data are split into two subsets, $A_1$ for decision of anomaly score threshold, $A_2$ for testing.
 
 \subsection{Online anomaly detection}
 \label{anomalydetection}
-The autoencoder reconstructs the input with its knowledge of normal data, so if the input data contains anomalies, the reconstruction error will be obviously large due to the lack of anomalous knowledge. For input $X^{(i)}$, the reconstruction error is 
+The autoencoder reconstructs the input with its knowledge of normal data, so if the input data contains anomalies, the reconstruction error will be obviously larger due to the lack of anomalous knowledge. For input $X^{(i)}$, the reconstruction error is 
 
 \begin{equation} \label{eq:error}
 e^{(i)}=\left| X^{(i)} - X^{'(i)} \right|
 \end{equation}
 
-similar to \cite{encdecad}, the reconstruction error of data points $N_3$ is used to estimate the parameters $\mu$ and $\Sigma$of a normal distribution $\mathcal{N}(\mu,\,\Sigma)$ using maximum likelihood estimation. The anomaly score for a point $x_t^{(i)}$ is defined as 
+similar to \cite{encdecad}, the reconstruction error of data points in $N_3$ is used to estimate the parameters $\mu$ and $\Sigma$ of a normal distribution $\mathcal{N}(\mu,\,\Sigma)$ using maximum likelihood estimation. The anomaly score for a point $x_t^{(i)}$ is defined as 
 
 \begin{equation} \label{eq:score}
 a^{(i)}={(e^{(i)}-\mu)}^{T}{\Sigma}^{-1}{(e^{(i)}-\mu)}
 \end{equation}
 
-During the initialization phase, a anomaly score threshold $\tau$ is also learned using $N_3$ and $A_1$ as
+During the initialization phase, an anomaly score threshold $\tau$ is also learned using $N_3$ and $A_1$ as
 
 \begin{equation} \label{eq:threshold}
 \tau = argmax AUC(a(N_3),a(A_1))
 \end{equation}
 
-The anomaly score of every instance in a window is compared with the threshold, and values over the threshold are predicted as anomalies. If a window contains more than $\tau_N$ anomalous values, this window is predicted as anomaly.
-
-
-
+The anomaly score of every instance in a window is compared with $\tau$, and values over $\tau$ are predicted as anomalies. If a window contains more than $\tau_N$ anomalous values, this window is predicted as anomaly. $\tau_N$ is determined by dataset study.\\
 
 \section{Online learning}
 \label{sec:Onlinelearning}
-However, if we consider using the model for streaming data, the autoencoder might get outdated because of the relative small and simple initialization dataset and concept drift happed along with time. So the update of model is necessary. In this section, we introduce the incremental learning function of the LSTMs-Autoencoder.
+However, if the model is utilized for streaming data, the autoencoder will possibly become outdated because of the relative small and simple initialization dataset and concept drift that happed along with the time. So the update of model is indispensable. In this section, we introduce the updating strategy of the LSTMs-Autoencoder.
 
 \subsection{Updating dataset}
 \label{data}
 
-Once the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub thread collects data instances continuously from the stream, and in the meantime, the main thread is working on real-time anomaly detection as long as mini-batches of data is provided by the sub thread. For each single window in the mini-batch, every instance is reconstructed and calculated the anomaly score using \Fref{eq:score}. The system maintains two data buffers for updating (\Fref{fig:buffer}), one for normal data, and the other one for anomalies. Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, and we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. After each batch, the label for each data window is determined by either expert or the model itself. We predefine a performance threshold for normal data. Normal data windows that containing more that performance threshold over-anomaly-score-threshold instances are regarded as not good mastered and will be appended into the normal buffer for updating. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for score threshold determination during updating. \\
+Once the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub-thread collects data instances continuously from the stream, and in the meantime, the main-thread works on real-time anomaly detection as long as mini-batches of data is provided by the sub-thread. For each single window in the mini-batch, every instance is reconstructed and the anomaly score is calculated using \Fref{eq:score}. The system maintains two data buffers for updating (\Fref{fig:buffer}), one for normal data windows, and the other one for anomalous windows. Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. After each batch, the label for each data window is determined by experts. We predefine a performance threshold PN for normal data. Normal data windows that containing more than PN over $\tau_N$ instances are regarded as not good mastered and will be appended into the normal buffer for updating. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for score threshold determination during updating. \\ 
 
-Because the out-of-date buffer not might be collect from previous concept drift time period, and not benefits to current updating, we maintain the retain buffers with a queue structure, so that only a specific amount of most fresh data can stay in the buffer. To this end, when a updating process is triggered, only not well mastered fresh normal data are used for updating.
+Because the out-of-date buffer not might be collect from previous concept drift time period, and not benefits to current updating, we maintain the retain buffers with a queue structure, so that only a specific amount of most fresh data can stay in the buffer. To this end, once a updating process is triggered, only not well mastered fresh normal data are used for updating.
 
 
 \begin{figure}[h]
@@ -103,15 +106,17 @@ Because the out-of-date buffer not might be collect from previous concept drift 
 \subsection{Updating trigger}
 \label{trigger}
 
-During the online processing, if the system detected that the model doesn’t fit the current data any more, then the updating is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need updating to fit the latest data, but still lack of anomaly data in the buffer to update the threshold. To this end, we trigger the updating so long as the anomaly buffer is not empty. If the anomaly data are not enough to make up a single batch, then we duplicate the anomaly buffer until the batch size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream.\\
-The first updating trigger strategy depends on the buffer size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream. The approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, updating is not directly depends on the real-time prediction performance. \\
+During the online processing, if the system detects that the model doesn’t fit the current data any more, then the model updating is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need updating to fit the latest data, but still lack of anomaly data in the buffer to update the anomaly score threshold. To this end, we trigger the updating so long as the anomaly buffer is not empty. If the anomaly data are not enough to make up a single batch, then we duplicate the windows in anomaly buffer until buffer fits the batch size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream.\\
+ 
+The first updating trigger strategy depends on the buffer size. This approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, updating is not directly depends on the real-time prediction performance. \\
+
 Another updating trigger strategy is designed for smaller data set, where the waiting time of updating buffer full might be long after concept drift happening. During the waiting time, there can be other concept drifts, and the prediction performance is suboptimal during this time period. So, for smaller data sets, the updating trigger should directly relate to real-time performance. A simple way is, compare the batch performance with the first batch after last updating or streaming beginning. The reason is, the model is only updated with normal data, therefore every updating brings new knowledge to the model, and improve the performance, so the batch performance should at least same as or better that the first batch performance, otherwise it indicates concept drift.\\
 
 
 \subsection{Model updating}
 \label{updating}
 
-Once updating process is triggered, the model will be updated using data from the buffers. Windows of normal buffer are divided into updating set and updating validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model updating are all done in memory. The updating is a continuation of the initialization or previous updating with identical data format. Parameters mu, sigma as well as threshold are learned from the updating validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the updating using normal validation set as well.
+Once updating process is triggered, the model will be updated using data from the buffers. Windows of normal buffer are divided into updating set and updating validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model updating are all done in memory. The updating is a continuation of the initialization or previous updating with identical data format. Parameters mu, sigma as well as anomaly score threshold are learned from the updating validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the updating using normal validation set as well.
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
