@@ -52,6 +52,22 @@ In order to compare the performance with and without retraining, after each mode
 
 In order to show the benefit of model updating over the stream, we demonstrate the online learning process of the small set PowerDemand in this section. The PowerDemand dataset does not contain clear incremental or sudden concept drift, but the normal patterns still different slightly to each other. The lack of overall impression during the model initialization phase can lead to failures during the online phase. 
 
+\subsection{Anomaly detection over stream}
+\label{sec:detection}
+
+Generally, the autoencoder reconstructs normal data with relative lower reconstruction error while anomaly data with significant larger reconstruction error. \Fref{fig:power_re} demonstrates two typical data windows (weeks) in PowerDemand, one normal and one anomaly. The Monday of anomaly week (right) is a special data, which has an abnormally low power demand. Even so, the autoencoder still reconstructs the Monday as usual with a higher score, therefore the reconstruction error is obviously larger on Monday, and the model labels this week as anomaly.\\
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=12cm, height=8cm]{power_na}
+\caption[Reconstruction error of PowerDemand data]{Reconstruction error of PowerDemand data}
+\label{fig:power_re}
+\end{figure}
+
+Even there will be concept drift over the stream, which will lead to an entirely increase or decrease in the input side, and the decoder output side remaining, our model can still deal with this problem with its online parameter updating ability. While the anomaly scores are calculated by the mahalanobis distance to the estimated normal distribution of normal data reconstruction errors in the validation set, by every model updating, the model estimates new normal distribution and relevant parameters with the latest collected validation set, so that the reconstruction error based anomaly detection is robust against concept drift.\\
+
+
+
 \subsection{Reaction of concept drift}
 \label{sec:reaction}
 
@@ -114,11 +130,15 @@ Sometimes concept drift over the stream are slight, periodically, and potentiall
 \label{fig:fcd}
 \end{figure}
 
- The points on the time axis in \Fref{fig:fcd} indicates the model updating. In the anomaly score chart, the scores for anomaly data are generally larger than normal data except when concept drifts take place. Once data stream from a new cover type appears in the stream, there are always peaks in the normal data score plot, and the difference to anomaly data scores decreases. After performance being impacted, the normal buffer is filled with hard windows shortly, that triggers the model updating quickly after the concept drift. \\
+The points on the time axis in \Fref{fig:fcd} indicates the model updating. In the anomaly score chart, the scores for anomaly data are generally larger than normal data except when concept drifts take place. Once data stream from a new cover type appears in the stream, there are always peaks in the normal data score plot, and the difference to anomaly data scores decreases. After performance being impacted, the normal buffer is filled with hard windows shortly, that triggers the model updating quickly after the concept drift. \\
 
 During the experiment, there are two cases delay the updating. Firstly, because of the fixed size of buffer, if a model updating is just triggered shortly before a concept drift, then the hard windows from new cover type need more time to fill the buffer and trigger updating. In \Fref{fig:fcd}, before TYPE3 arrive, there was a updating at the end of TYPE2, and buffered was emptied, so that the model didn’t take any action against the concept drift. Secondly, if a concept drift only appears in a short period, e.g. the TYPE7, which is also not enough to fill the buffer and trigger updating. However, under both aforementioned cases, the new information of concept drift, namely the new cover types, are stored in the buffer, and will be used for next model updating. If the concept drift missed model updating due to too short appearance period, we suppose that this would also not cause catastrophic effect over the stream prediction.\\
 
 
+\subsection{Summary}
+\label{sec:summary}
+
+In this section, we experimented out online LSTMs-Autoencoder model with five different streaming data. With the PowerDemand dataset, we demonstrated a synthetic example of our model, which shows the reconstruction error based anomaly detection mechanism and how the reconstruction adapt to new coming streaming data through model updating. Furthermore, we use the two dataset that contains obvious concept drift, SMTP+HTTP and ForestCover. The model reacts quickly to sudden and drastic concept drift, and potentially more updating will be triggered after concept drift to catch enough valuable information from the drifted stream. And when multiple concept drifts happen temporally and shortly, the model misses some of them, but the fresh information of those concept drifts are still accumulated to the buffer and used by next updating.
 
 
 

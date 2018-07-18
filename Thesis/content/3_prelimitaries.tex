@@ -1,7 +1,7 @@
 \chapter{Preliminaries}
 \label{chap:Preliminaries}
 
-In this section, the streaming data and the model basic will be introduced. At first, we formally define a data stream used in the experiments. Furthermore, we figure out the definition of anomalies in streaming data, and metrics to evaluate anomaly detection. And finally we refer the main concept of autoencoders and LSTMs, which are the basic architecting and component of our model. \Fref{tab:noration} is a summarization of notations used in this section.
+In this section, the streaming data and the model basic will be introduced. At first, we formally define the data stream used in the experiments. Furthermore, we figure out the definition of anomalies in streaming data, and metrics used for evaluation. Finally we refer the main concept of autoencoders and LSTMs, which are the basic architecting and component of our model. Table 3.1 is a summarization of notations used in this section.
 
 \begin{table}[h]
 \begin{center}
@@ -9,22 +9,23 @@ In this section, the streaming data and the model basic will be introduced. At f
 \hline
 Notation & Description \\ \hline
 DS & Data stream \\
-$x_{T}$ & Instance arrived at time T \\
-$t_T$ & Timestamp of time \\
+$x_i$ & Instance arrived at moment i \\
+$t_i$ & Timestamp of moment i \\
 MB & Batch size	\\	
-$c \in R^hs$ & LSTM unit cell state with hs dimensions \\
-a & Cell output  \\ 
+T & LSTM unit input window length \\
+$c \in R^{hs}$ & LSTM unit cell state with hs dimensions \\
+$a \in R^{T}$ & Cell output with T dimensions \\ 
 $\chi = R^d $ & Feature space with d dimensions  \\
 X & A random variable take values from $\chi$	\\
 $\Phi$ & Shaping function of autoencoders	\\	
 $\Psi$ & Activation function of autoencoders	 \\
 H & Hidden layer representation of autoencoders  \\
-$d_T$ & Decoder input at time \\  \hline
+$d_j$ & Decoder input at step j\\ \hline
 
-
-\label{tab:notation}
 \end{tabular}
 \end{center}
+\label{tab:notation}
+\caption{Table of notations}
 \end{table}
 
 
@@ -55,27 +56,6 @@ In order to feed the streaming data to LSTMs, the stream is accumulated to windo
 \textbf{Pointwise}: A data point (instance) is anomalous(e.g. \Fref{fig:point}) if this point is distant from other observations according to some specific measurement metrics. This is used in fine-grained anomaly detection tasks, that need to find out every single anomalous instance, e.g. credit card fraud detection, spam email detection.\\
 
 \textbf{Window-based}: Sometimes, a data point is apparently normal, but this point, or potentially together with its neighbors violates the overall periodicity or other character of the time series, we also treat them as anomaly, which is called window-based anomaly or contextual anomaly, e.g. \Fref{fig:window}.\\
-\begin{figure}[h]
-\centering
-	\begin {subfigure}[t]{8cm}
-	\centering
-	\includegraphics[height=6cm]{anomaly_point}
-	\caption{Pointwise anomaly}
-	\label{fig:point}
-	\end{subfigure}
-	~
-	\begin {subfigure}[t]{8cm}
-	\centering
-	\includegraphics[ height=6cm]{anomaly_window}
-	\caption{Window-based anomaly}
-	\label{fig:window}
-	\end{subfigure}
-	\caption[Anomaly types]{Anomaly types}
-\label{fig:anomalytypes}
-
-\end{figure}
-
-
 
 
 In the anomlay detection experiments, abnormal data is the object of study, therefore we take the anomaly as positive class and normal data as negative class. \\
@@ -105,7 +85,25 @@ TPR =\dfrac{TP}{TP+FN}
 \begin{equation} \label{eq:fpr}
 FPR = \dfrac{FP}{FP+TN}
 \end{equation}
+\begin{figure}[h]
+\centering
+	\begin {subfigure}[t]{8cm}
+	\centering
+	\includegraphics[height=6cm]{anomaly_point}
+	\caption{Pointwise anomaly}
+	\label{fig:point}
+	\end{subfigure}
+	~
+	\begin {subfigure}[t]{8cm}
+	\centering
+	\includegraphics[ height=6cm]{anomaly_window}
+	\caption{Window-based anomaly}
+	\label{fig:window}
+	\end{subfigure}
+	\caption[Anomaly types]{Anomaly types}
+\label{fig:anomalytypes}
 
+\end{figure}
 
 
 \section{LSTMs}
@@ -174,7 +172,7 @@ Normally the component between input layer and hidden layer is called encoder, a
 \end{aligned}
 \end{equation}
 
-LSTMs-autoencoder has the same encoder-decoder architecture, while the neurons are LSTM units and connected in the way described in section \ref{sec:LSTMs}. \Fref{fig:encdecad} is a basic LSTMs-based autoencoder architecture with single LSTM layer on both encoder and decoder side. Our incremental LSTMs-autoencoder is based on this structure. The model takes window with length T as input (one instance at each step). The cell state carries sequence information and is passed through LSTM unit over time. When the encoder reaches the last encoder state, namely ET in \Fref{fig:encdecad2}, its cell state is actually the fix length embedding of the input window, and will be copied to the decoder as initial cell state of decoder, so that the input information is also transferred to the decoder. And the decoder predict the window in reversed order in order to make the optimization problem easier. To be notice is, different from aforementioned deep LSTMs in section \ref{sec:LSTMs}, the encoder outputs at each time step are not directly used as inputs of decoder, while between the encoder and decoder is actually not the same logical connection as stacked LSTMs. Here, the outputs of encoder are ignored, and there are different works contributes to the research of decoder inputs. Cho et al. \cite{phraserepresentation} feeds the input sequence to the decoder for a learning phrase representation task, Malhotra et al. \cite{encdecad} feed to decoder LSTM unit at each time step the value of previous time step as input, and in a extended work \cite{timenet} they feed the decoder always a constant vector for an anomaly detection task, because the finial cell state already carries all relevant information to represent the input window. In our model, we feed the decoder a constant vector.\\
+LSTMs-autoencoder has the same encoder-decoder architecture, while the neurons are LSTM units and connected in the way described in section \ref{sec:LSTMs}. \Fref{fig:encdecad} is a basic LSTMs-based autoencoder architecture with single LSTM layer on both encoder and decoder side. Our incremental LSTMs-autoencoder is based on this structure. The model takes window with length T as input (one instance at each step). The cell state carries sequence information and is passed through LSTM unit over time. When the encoder reaches the last encoder state, namely ET in \Fref{fig:encdecad2}, its cell state is actually the fix length embedding of the input window, and will be copied to the decoder as initial cell state of decoder, so that the input information is also transferred to the decoder. And the decoder predict the window in reversed order in order to make the optimization problem easier. To be notice that, different from aforementioned deep LSTMs in section \ref{sec:LSTMs}, the encoder outputs at each time step are not directly used as inputs of decoder, while between the encoder and decoder is actually not the same logical connection as stacked LSTMs. Here, the outputs of encoder are ignored, and there are different works contributes to the research of decoder inputs. Cho et al. \cite{phraserepresentation} feeds the input sequence to the decoder for a learning phrase representation task, Malhotra et al. \cite{encdecad} feed to decoder LSTM unit at each time step the value of previous time step as input, and in a extended work \cite{timenet} they feed the decoder always a constant vector for an anomaly detection task, because the finial cell state already carries all relevant information to represent the input window. In our model, we feed the decoder a constant vector.\\
 
 \begin{figure}[t!]
 \centering
