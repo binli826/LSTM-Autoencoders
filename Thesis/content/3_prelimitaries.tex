@@ -1,6 +1,33 @@
 \chapter{Preliminaries}
 \label{chap:Preliminaries}
 
+In this section, the streaming data and the model basic will be introduced. At first, we formally define a data stream used in the experiments. Furthermore, we figure out the definition of anomalies in streaming data, and metrics to evaluate anomaly detection. And finally we refer the main concept of autoencoders and LSTMs, which are the basic architecting and component of our model. \Fref{tab:noration} is a summarization of notations used in this section.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+Notation & Description \\ \hline
+DS & Data stream \\
+$x_{T}$ & Instance arrived at time T \\
+$t_T$ & Timestamp of time \\
+MB & Batch size	\\	
+$c \in R^hs$ & LSTM unit cell state with hs dimensions \\
+a & Cell output  \\ 
+$\chi = R^d $ & Feature space with d dimensions  \\
+X & A random variable take values from $\chi$	\\
+$\Phi$ & Shaping function of autoencoders	\\	
+$\Psi$ & Activation function of autoencoders	 \\
+H & Hidden layer representation of autoencoders  \\
+$d_T$ & Decoder input at time \\  \hline
+
+
+\label{tab:notation}
+\end{tabular}
+\end{center}
+\end{table}
+
+
 \section{Definition of stream}
 \label{sec:Definition of stream}
 
@@ -143,7 +170,7 @@ Normally the component between input layer and hidden layer is called encoder, a
 \begin{aligned}
 \Phi : &\chi \rightarrow H \\
 \Psi : &H \rightarrow \chi \\
-\Phi, \Psi = &argmin \left \| \chi-(\Psi \circ \Phi)\chi \right \|^2
+\Phi, \Psi = &argmin \left \| X-(\Psi \circ \Phi)X \right \|^2
 \end{aligned}
 \end{equation}
 

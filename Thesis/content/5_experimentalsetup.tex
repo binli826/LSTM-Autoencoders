@@ -26,10 +26,10 @@ ForestCover & 581 012 & 7 & 0.47 \\ [1ex]
 
 We separate each dataset into initialization set and streaming set, both contain normal and abnormal data. Further, the initialization set is divided into 
 \begin{itemize}
-\item G(n\&a): for grid search
-\item Tr(n): for model initial training
-\item P(n\&a): for model parameter learning
-\item Te(n\&a): for testing during initialization
+\item GS(n\&a): for grid search
+\item INIT(n): for model initial training
+\item PL(n\&a): for model parameter learning
+\item TEST(n\&a): for testing during initialization
 \end{itemize}
 where “n” represents normal data and “a” represents abnormal data. And the streaming set is published to Kafka to generate data stream (\Fref{fig:kafka}).
 
@@ -40,13 +40,13 @@ where “n” represents normal data and “a” represents abnormal data. And t
 \label{fig:kafka}
 \end{figure}
 
-For each dataset, we use half data for initialization and the other half for online prediction. Each subset used for training and prediction are preprocessed locally in batch, in order to scale them into $[0,1]$ to fit the LSTM activation function.
+For each dataset, we use around 20\% data for initialization and the other half for online prediction. Each subset used for training and prediction are preprocessed locally in batch, in order to scale them into $[0,1]$ to fit the LSTM activation function.
 
 
 \section{Parameter tuning}
 \label{sec:parametertuning}
 
-For each dataset, we carry out a grid search step to tune the model hyperparameters. Here we try multiple combinations of window length and hidden size for each data set. The grid search set G contains 5\% -15\% anomalies, and same amount of normal data together with the anomalies make up the testing set in grid search. The rest normal data is used for training. Because of the uncertainty of the random neural network weight initialization, we do each experiment 10 times and take the average result to reduce the impact. To be noted that during every divisions, the consistency of streaming data is persisted, or in other words, there is no random sampling during the process. A good model should make the reconstruction error as large as possible in order to make the classification easier. Given dataset D,  win is the input window, the average reconstruction error of D is given by \Fref{eq:are}. The target function of grid search is given by the ration of average reconstruction error of abnormal and normal test grid search set G (\Fref{eq:are}).
+For each dataset, we carry out a grid search step to tune the model hyperparameters. Here we try multiple combinations of window length and hidden size for each data set. The grid search set GS contains 5\% -15\% anomalies. Because of the uncertainty of the random neural network weight initialization, we do each experiment 10 times and take the average result to reduce the impact. To be noted that during every divisions, the consistency of streaming data is persisted, or in other words, there is no random sampling during the process. A good model should make the reconstruction error as large as possible in order to make the classification easier. Given dataset D,  'win' is the input window, the average reconstruction error of D is given by \Fref{eq:are}. The target function of grid search is given by the ration of average reconstruction error of abnormal and normal test grid search set GS (\Fref{eq:are}).
 
 \begin{equation}\label{eq:are}
 ARE(D) = \frac{1}{T}\sum_{t=1,win\in D}^{T}(input_{t,win}-output_{t,win})
@@ -56,41 +56,8 @@ ARE(D) = \frac{1}{T}\sum_{t=1,win\in D}^{T}(input_{t,win}-output_{t,win})
 REratio=\frac{ARE(G_a)}{ARE(G_n)}
 \end{equation}
 
-\begin{figure}[h]
-\centering
-	\begin {subfigure}[t]{0.45\textwidth}
-	\centering
-	\includegraphics[height=6cm]{power_gridsearch}
-	\caption{PowerDemand}
-	\label{fig:power}
-	\end{subfigure}
-	~
-	\begin {subfigure}[t]{0.45\textwidth}
-	\centering
-	\includegraphics[height=6cm]{http_gridsearch}
-	\caption{HTTP}
-	\label{fig:http}
-	\end{subfigure}
-	~
-	\begin {subfigure}[t]{0.45\textwidth}
-	\centering
-	\includegraphics[ height=6cm]{smtp_gridsearch}
-	\caption{SMTP}
-	\label{fig:smtp}
-	\end{subfigure}
-	~
-	\begin {subfigure}[t]{0.45\textwidth}
-	\centering
-	\includegraphics[height=6cm]{forest_gridsearch}
-	\caption{Forest}
-	\label{fig:forest}
-	\end{subfigure}
 
-	\caption[Grid search]{Grid search}
-\label{fig:gridsearch}
-\end{figure}
-
-As a result of grid search, the hyperparameters for different datasets are listed in Table~\ref{tab:hyper}
+As a result of grid search, the hyperparameters for different datasets are listed in Table~\ref{tab:hyper}.
 
 \begin{table}[h] 
 \caption{Hyperparameters} 
@@ -100,10 +67,10 @@ As a result of grid search, the hyperparameters for different datasets are liste
 Dataset & Window length & Hidden size & \#Grid Search instance \\ [0.5ex] 
 \hline 
 PowerDemand & 80 & 15 & 1 000 \\  
-SMTP & 100 & 5 &  5 000 \\ 
-SMTP+HTTP & 100 & 5 & 5 000 \\ 
-HTTP & 30 & 5  &  10 000 \\ 
-ForestCover & 100 & 35 & 10 000 \\ [1ex]  
+SMTP & 10 & 15 &  5 000 \\ 
+SMTP+HTTP & 10 & 15 & 5 000 \\ 
+HTTP & 30 & 35  &  10 000 \\ 
+ForestCover & 10 & 25 & 10 000 \\ [1ex]  
 \hline    
 \end{tabular}
 \label{tab:hyper}  

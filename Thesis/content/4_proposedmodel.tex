@@ -10,7 +10,7 @@ The proposed model is a full flow from data stream generation, anomaly detection
 \begin{figure}[h]
 \centering
 \includegraphics[width=10cm, height=10cm]{flowchart}
-\caption[Online anomaly detection system flowchart]{Online anomaly detection system flowchart}
+\caption[Online anomaly detection flowchart]{Online anomaly detection flowchart}
 \label{fig:flowchart}
 \end{figure}
 
@@ -108,7 +108,7 @@ Because the out-of-date buffer not might be collect from previous concept drift 
 
 During the online processing, if the system detects that the model doesn’t fit the current data any more, then the model updating is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need updating to fit the latest data, but still lack of anomaly data in the buffer to update the anomaly score threshold. To this end, we trigger the updating so long as the anomaly buffer is not empty. If the anomaly data are not enough to make up a single batch, then we duplicate the windows in anomaly buffer until buffer fits the batch size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream.\\
  
-The first updating trigger strategy depends on the buffer size. This approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, updating is not directly depends on the real-time prediction performance. \\
+The updating trigger strategy depends on the buffer size. This approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, updating is not directly depends on the real-time prediction performance. \\
 
 Another updating trigger strategy is designed for smaller data set, where the waiting time of updating buffer full might be long after concept drift happening. During the waiting time, there can be other concept drifts, and the prediction performance is suboptimal during this time period. So, for smaller data sets, the updating trigger should directly relate to real-time performance. A simple way is, compare the batch performance with the first batch after last updating or streaming beginning. The reason is, the model is only updated with normal data, therefore every updating brings new knowledge to the model, and improve the performance, so the batch performance should at least same as or better that the first batch performance, otherwise it indicates concept drift.\\
 
@@ -116,20 +116,20 @@ Another updating trigger strategy is designed for smaller data set, where the wa
 \subsection{Model updating}
 \label{updating}
 
-Once updating process is triggered, the model will be updated using data from the buffers. Windows of normal buffer are divided into updating set and updating validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model updating are all done in memory. The updating is a continuation of the initialization or previous updating with identical data format. Parameters mu, sigma as well as anomaly score threshold are learned from the updating validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the updating using normal validation set as well.
+Once the updating process is triggered, the model will be updated using data from the buffers. Windows of normal buffer are divided into updating training set and updating validation set. Once the online phase starts, the LSTMs-Autoencoder is loaded into memory, and further model updating are all done in memory. The updating is a continuation of the initialization or previous updating (last check point) with identical data format. Parameters mu, sigma as well as anomaly score threshold are learned from the updating validation set and anomaly buffer data. The parameters mu and sigma are the mean and variance (or covariance for multivariate data) of reconstruction error estimated by normal validation set during training. So we learn new parameters in the updating using normal validation set as well.
 
 \begin{algorithm}[h]
 \SetKwInOut{Input}{input}
-\Input{normal buffer: nBuf, abnormal buffer: aBuf}
+\Input{nBuf, aBuf}
 
 \BlankLine 
-updateSet, valSetN = split(nBuf)\;
+trainSet, valSetN = split(nBuf)\;
 valSetA = aBuf\;
 
-Train(updateSet)\;
-mu, sigma, threshold = getParameters(valSetN, valSetA)
+train(trainSet)\;    
+mu, sigma, threshold = getParameters(valSetN, valSetA)\;
 
-\caption{updating}
+\caption{update}
 \label{alg:update}
 \end{algorithm}
 
