@@ -38,7 +38,7 @@ abnormalBuffer = [ ]\;
 	result = evaluate(pred,labels)\;
 	\ForEach {window $\textbf{in}$ data}{
 	\If{$'$anomaly$ '$ $\textbf{in}$ label[window$.$index]}{abnormalBuffer$.$append(window)}
-	\eIf{AUC(result[window$.$index]) $>=$ P}{continue\;}{\eIf{label == $'$normal$ '$}{normalBuffer$.$append(window)\;}{continue\;}}
+	\eIf{AUC(result[window$.$index]) $>=$ P}{continue\;}{\eIf{label[window$.$index] == $'$normal$ '$}{normalBuffer$.$append(window)\;}{continue\;}}
 	
 	}
 
@@ -81,7 +81,7 @@ During the initialization phase, an anomaly score threshold $\tau$ is also learn
 \tau = argmax AUC(a(N_3),a(A_1))
 \end{equation}
 
-The anomaly score of every instance in a window is compared with $\tau$, and values over $\tau$ are predicted as anomalies. If a window contains more than $\tau_N$ anomalous values, this window is predicted as anomaly. $\tau_N$ is determined by dataset study.\\
+The anomaly score of every instance in a window is compared with $\tau$, and values over $\tau$ are predicted as anomalies. If a window contains more than $\tau_N$ anomalous values, this window is predicted as anomaly. The threshold $\tau_N$ is determined by dataset study.\\
 
 \section{Online learning}
 \label{sec:Onlinelearning}
@@ -90,7 +90,7 @@ However, if the model is utilized for streaming data, the autoencoder will possi
 \subsection{Updating dataset}
 \label{data}
 
-Once the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub-thread collects data instances continuously from the stream, and in the meantime, the main-thread works on real-time anomaly detection as long as mini-batches of data is provided by the sub-thread. For each single window in the mini-batch, every instance is reconstructed and the anomaly score is calculated using \Fref{eq:score}. The system maintains two data buffers for updating (\Fref{fig:buffer}), one for normal data windows, and the other one for anomalous windows. Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. After each batch, the label for each data window is determined by experts. We predefine a performance threshold PN for normal data. Normal data windows that containing more than PN over $\tau_N$ instances are regarded as not good mastered and will be appended into the normal buffer for updating. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for score threshold determination during updating. \\ 
+Once the LSTMs-Autoencoder is initialized, it is ready for online prediction. There is a multi-thread setting in the online learning architecture. A sub-thread collects data instances continuously from the stream, and in the meantime, the main-thread works on real-time anomaly detection as long as mini-batches of data is provided by the sub-thread. For each single window in the mini-batch, every instance is reconstructed and the anomaly score is calculated using \Fref{eq:score}. The system maintains two data buffers for updating (\Fref{fig:buffer}), one for normal data windows, and the other one for anomalous windows. Considering the fact that a well mastered window leads to lower reconstruction error, and higher error indicates new features in the data, we can measure this reconstruction error level by the predefined normal distribution on reconstruction error. After each batch, the label for each data window is determined by experts. We predefine a performance threshold PN for normal data. Normal data windows that containing more than PN over $\tau$ instances are regarded as not good mastered and will be appended into the normal buffer for updating. Normally, we set PN lower than $\tau_N$, so that not only wrongly predicted, but also 'hardly predicted' data are collected for model updating. As anomalies appear rarely in the stream, we collect all anomalous windows in the abnormal buffer for score threshold determination during updating. \\ 
 
 Because the out-of-date buffer not might be collect from previous concept drift time period, and not benefits to current updating, we maintain the retain buffers with a queue structure, so that only a specific amount of most fresh data can stay in the buffer. To this end, once a updating process is triggered, only not well mastered fresh normal data are used for updating.
 
@@ -108,9 +108,7 @@ Because the out-of-date buffer not might be collect from previous concept drift 
 
 During the online processing, if the system detects that the model doesn’t fit the current data any more, then the model updating is triggered and done with the latest collected data in the two buffers. During experiments we found that, anomalies only appears rarely in the stream, so it often happens that the model need updating to fit the latest data, but still lack of anomaly data in the buffer to update the anomaly score threshold. To this end, we trigger the updating so long as the anomaly buffer is not empty. If the anomaly data are not enough to make up a single batch, then we duplicate the windows in anomaly buffer until buffer fits the batch size. In case of the normal buffer reaches a predefined size and anomaly buffer is not empty, the model is updated in a sub thread while the main thread keeps processing the stream.\\
  
-The updating trigger strategy depends on the buffer size. This approach is suitable for larger, relative stationary data, while even concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And this approach highly depends on the performance threshold that decides when a data window from stream should be appended to the buffers, namely, updating is not directly depends on the real-time prediction performance. \\
-
-Another updating trigger strategy is designed for smaller data set, where the waiting time of updating buffer full might be long after concept drift happening. During the waiting time, there can be other concept drifts, and the prediction performance is suboptimal during this time period. So, for smaller data sets, the updating trigger should directly relate to real-time performance. A simple way is, compare the batch performance with the first batch after last updating or streaming beginning. The reason is, the model is only updated with normal data, therefore every updating brings new knowledge to the model, and improve the performance, so the batch performance should at least same as or better that the first batch performance, otherwise it indicates concept drift.\\
+The updating trigger strategy depends on the buffer size.  If concept drift happens, large amount of data arrives quickly to enrich the updating buffers, and trigger updating in time. And the trigger highly depends on the hard window criterion that decides when a data window from stream should be appended to the buffers. In case it is necessary to react very quickly after the concept drift, then the criterion of ‘hard’ should be lower, so that more windows during concept drift will be added to the buffer.\\
 
 
 \subsection{Model updating}

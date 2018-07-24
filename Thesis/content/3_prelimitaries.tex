@@ -9,12 +9,13 @@ In this section, the streaming data and the model basic will be introduced. At f
 \hline
 Notation & Description \\ \hline
 DS & Data stream \\
-$x_i$ & Instance arrived at moment i \\
+$x_i \in R^D$ & Instance arrived at moment i with D dimensions\\
 $t_i$ & Timestamp of moment i \\
 MB & Batch size	\\	
 T & LSTM unit input window length \\
 $c \in R^{hs}$ & LSTM unit cell state with hs dimensions \\
-$a \in R^{T}$ & Cell output with T dimensions \\ 
+$a \in R^{D}$ & Cell output with D dimensions \\ 
+$h_i$ & LSTM unit hypothesis at step i \\
 $\chi = R^d $ & Feature space with d dimensions  \\
 X & A random variable take values from $\chi$	\\
 $\Phi$ & Shaping function of autoencoders	\\	
@@ -155,7 +156,7 @@ Deep LSTM RNNs are built by stacking multiple LSTM layers. Note that LSTM RNNs a
 \label{sec:Autoencoders}
 
 An autoencoder (\Fref{fig:autoencoder}) is an artificial neural network with symmetrical structure. Normally an autoencoder has at least one hidden layer that consists of less neurons than input and output layers. And the basic aim of autoencoders is to reconstruct its own input and learn a lower dimensional representation (encoding) of input data in the hidden layer. Moreover, the autoencoders are also used for anomaly detection by measuring the reconstruction error between inputs and predictions.
-Normally the component between input layer and hidden layer is called encoder, and the symmetrical component between hidden layer and output layer is called decoder. For input $\chi$, the objective function is to find weight vectors for encoder and decoder to minimize the reconstruction error (Equation \ref{eq:autoencoder}).\\
+Normally the component between input layer and hidden layer is called encoder, and the symmetrical component between hidden layer and output layer is called decoder. For input X, the objective function is to find weight vectors for encoder and decoder to minimize the reconstruction error (Equation \ref{eq:autoencoder}).\\
 
 \begin{figure}[h]
 \centering
