@@ -74,7 +74,7 @@ With AUC as evaluation metric, we got following performance of the data stream a
 
 ## Usage
 #### Data preparation
-Once datasets avaliable, covert the raw data into uniform format using [dataPreparation]（https://github.com/binli826/LSTM-Autoencoders/blob/master/src/dataPreparation.py)
+Once datasets avaliable, covert the raw data into uniform format using [dataPreparation.py].
 
 ```sh
 python dataPreparation.py dataset inputpath outputpath --powerlabel --kddcol
@@ -96,3 +96,4 @@ This project works with
 
 [Malhotra et al.]: <https://arxiv.org/pdf/1607.00148.pdf>
 [Dong et al.]: <https://onlinelibrary.wiley.com/doi/abs/10.1111/coin.12146>
+[dataPreparation.py]: <https://github.com/binli826/LSTM-Autoencoders/blob/master/src/dataPreparation.py>
