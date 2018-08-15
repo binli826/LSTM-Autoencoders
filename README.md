@@ -61,7 +61,7 @@ The following table shows statistical information of each dataset.(Only numerica
 Here is an reconstruction example of a normal window and an anomaly window of the PowerDemand data.
 ![Reconstruction example](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/example.PNG)
 >
-With AUC as evaluation metric, we got following performance of the data stream.
+With AUC as evaluation metric, we got following performance of the data stream anomaly detection.
 
 | Dataset | AUC without updating | AUC with updating | #Updating |
 | :------: | :------: | :------: | :------: |
@@ -73,10 +73,17 @@ With AUC as evaluation metric, we got following performance of the data stream.
 
 
 ## Usage
+#### Data preparation
+Once datasets avaliable, covert the raw data into uniform format using [dataPreparation].
+```sh
+python dataPreparation.py dataset inputpath outputpath --powerlabel --kddcol
+# Example
+python dataPreparation.py kdd /mypath/kddcup.data.corrected /mypath/tosave --kddcol /mypath/columns.txt
+```
 
 ## Versions
 This project works with
-* Python 3.5
+* Python 3.6
 * Tensorflow 1.4.0
 * Numpy 1.13.3
 
