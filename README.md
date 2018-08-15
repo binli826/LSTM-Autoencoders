@@ -6,7 +6,7 @@ This project is my master thesis, worked on between 02.2018 and 07.2018. The mai
 
   - [Thesis](https://github.com/binli826/LSTM-Autoencoders/blob/master/Thesis.pdf) 
   - [Slides](https://github.com/binli826/LSTM-Autoencoders/blob/master/Slides.pdf)
-  - [Usage]()
+  - [Usage](https://github.com/binli826/LSTM-Autoencoders/tree/master#usage)
 
 ## Introduction
 The high-volume and -velocity data stream generated from devices and applications from
