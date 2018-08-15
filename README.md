@@ -24,7 +24,25 @@ mini-batch based streaming processing approach. We experimented with streaming d
 that containing different kinds of anomalies as well as concept drifts, the results suggest
 that our model can sufficiently detect anomaly from data stream and update model timely
 to fit the latest data property.
+
 ## Model
+#### LSTM-Autoencoder
+The LSTM-Autoencoder is based on the work of Malhotra et al.[1]. There are two LSTM units, one as encoder and the other one as decoder. Model will only be trained with normal data, so the reconstruction of anomalies is supposed to lead higher reconstruction error.
+
+![LSTM-Autoencoder](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/LSTM-Autoencoder.png)
+
+> **Input/Output format**
+> < Batch size, Time steps, Data dimensions > 
+>  
+> Batch size: Number of windows contained in a single batch
+> Time steps: Number of instances within a window (T)
+> Data dimensions: Size of feature space
+
+#### Online framework
+Once the LSTM-Autoencoder is initialized with a subset of respective data streams, it is used for the online anomaly detection. For each accumulated batch of streaming data, the model predict each window as normal or anomaly. Afterwards, we introduce experts to label the windows and evaluate the performance. Hard windows will be appended into the updating buffers. Once the normal buffer is full, there will the a continue training of LSTM-Autoencoders only with the hard windows in the buffers.
+![Online framework](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/Online.png)
+
+
 
 
 ## Datasets
