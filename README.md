@@ -1,6 +1,6 @@
 # Anomaly detection for streaming data using autoencoders
 
-This project is my master thesis, worked on between 02.2018 and 07.2018. The main target is to maintain an adaptive autoencoder-based anomaly detection framework that is able to not only detect contextual anomalies from streaming data, but also update itself according to the latest data feature.
+This project is my master thesis. The main target is to maintain an adaptive autoencoder-based anomaly detection framework that is able to not only detect contextual anomalies from streaming data, but also update itself according to the latest data feature.
 
 ## Quick access
 
@@ -58,12 +58,25 @@ The following table shows statistical information of each dataset.(Only numerica
 | FOREST | 7 | 581 012 | 0.47 |
 
 ## Results
+Here is an reconstruction example of a normal window and an anomaly window of the PowerDemand data.
+![Reconstruction example](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/example.PNG
+With AUC as evaluation metric, we got following performance of the data stream.
+| Dataset | AUC without updating | AUC with updating | #Updating |
+| :------: | :------: | :------: | :------: |
+| PowerDemand | 0.91 | 0.97 | 2 |
+| SMTP | 0.94 | 0.98 | 2 |
+| HTTP | 0.76 | 0.86 | 2 |
+| SMTP+HTTP | 0.64 | 0.85 | 3|
+| FOREST | 0.74 | 0.82 | 8 |
+
 
 ## Usage
 
 ## Versions
-
-## Reference
+The project works with
+* Python 3.5
+* Tensorflow 1.4.0
+* Numpy 1.13.3
 
 [1]: <https://arxiv.org/pdf/1607.00148.pdf>
 [2]: <https://onlinelibrary.wiley.com/doi/abs/10.1111/coin.12146>
