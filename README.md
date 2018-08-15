@@ -46,8 +46,16 @@ Once the LSTM-Autoencoder is initialized with a subset of respective data stream
 ## Datasets
 The model is experimenced with 5 datasets. [PowerDemand](https://github.com/binli826/LSTM-Autoencoders/blob/master/data/power_data.txt) dataset records the power demand over one year, the unnormal power demand on special days (e.g. festivals, christmas etc.) are labeled as anomalies.
 SMTP and HTTP are extracted from the [KDDCup99 dataset](http://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html). SMTP+HTTP is a direct connection of SMTP and HTTP, in order to simulate a concept drift in between.
-[FOREST](https://archive.ics.uci.edu/ml/datasets/covertype) dataset records statistics of 7 different forest cover types. We follow the same setting in [2], take the smallest class Cottonwood/Willow as anomaly.
+Here treat the network attacks as anomalies. [FOREST](https://archive.ics.uci.edu/ml/datasets/covertype) dataset records statistics of 7 different forest cover types. We follow the same setting in [2], take the smallest class Cottonwood/Willow as anomaly.
+The following table shows statistical information of each dataset.(Only numerical features are taken into consideration)
 
+| Dataset | Dimensionality | #Instances | Anomaly proportion (%) |
+| :------: | :------: | :------: | :------: |
+| PowerDemand | 1 | 35040 | 2.20 |
+| SMTP | 34 | 96554 | 1.22 |
+| HTTP | 34 | 623 091 | 0.65 |
+| SMTP+HTTP | 34 | 719 645 | 0.72|
+| FOREST | 7 | 581 012 | 0.47 |
 
 ## Results
 
