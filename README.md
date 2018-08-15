@@ -62,6 +62,7 @@ Here is an reconstruction example of a normal window and an anomaly window of th
 ![Reconstruction example](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/example.PNG)
 >
 With AUC as evaluation metric, we got following performance of the data stream.
+
 | Dataset | AUC without updating | AUC with updating | #Updating |
 | :------: | :------: | :------: | :------: |
 | PowerDemand | 0.91 | 0.97 | 2 |
