@@ -27,7 +27,7 @@ to fit the latest data property.
 
 ## Model
 #### LSTM-Autoencoder
-The LSTM-Autoencoder is based on the work of Malhotra et al.[1]. There are two LSTM units, one as encoder and the other one as decoder. Model will only be trained with normal data, so the reconstruction of anomalies is supposed to lead higher reconstruction error.
+The LSTM-Autoencoder is based on the work of [Malhotra et al.] There are two LSTM units, one as encoder and the other one as decoder. Model will only be trained with normal data, so the reconstruction of anomalies is supposed to lead higher reconstruction error.
 
 ![LSTM-Autoencoder](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/LSTM-Autoencoder.PNG)
 
@@ -46,7 +46,7 @@ Once the LSTM-Autoencoder is initialized with a subset of respective data stream
 ## Datasets
 The model is experimenced with 5 datasets. [PowerDemand](https://github.com/binli826/LSTM-Autoencoders/blob/master/data/power_data.txt) dataset records the power demand over one year, the unnormal power demand on special days (e.g. festivals, christmas etc.) are labeled as anomalies.
 SMTP and HTTP are extracted from the [KDDCup99 dataset](http://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html). SMTP+HTTP is a direct connection of SMTP and HTTP, in order to simulate a concept drift in between.
-Here treat the network attacks as anomalies. [FOREST](https://archive.ics.uci.edu/ml/datasets/covertype) dataset records statistics of 7 different forest cover types. We follow the same setting in [2], take the smallest class Cottonwood/Willow as anomaly.
+Here treat the network attacks as anomalies. [FOREST](https://archive.ics.uci.edu/ml/datasets/covertype) dataset records statistics of 7 different forest cover types. We follow the same setting as [Dong et al.], take the smallest class Cottonwood/Willow as anomaly.
 The following table shows statistical information of each dataset.(Only numerical features are taken into consideration)
 
 | Dataset | Dimensionality | #Instances | Anomaly proportion (%) |
@@ -78,5 +78,5 @@ This project works with
 * Tensorflow 1.4.0
 * Numpy 1.13.3
 
-[1]: <https://arxiv.org/pdf/1607.00148.pdf>
-[2]: <https://onlinelibrary.wiley.com/doi/abs/10.1111/coin.12146>
+[Malhotra et al.]: <https://arxiv.org/pdf/1607.00148.pdf>
+[Dong et al.]: <https://onlinelibrary.wiley.com/doi/abs/10.1111/coin.12146>
