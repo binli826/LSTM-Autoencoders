@@ -44,8 +44,9 @@ Once the LSTM-Autoencoder is initialized with a subset of respective data stream
 ![Online framework](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/Online.PNG)
 
 ## Datasets
-The model is experimenced with 5 datasets. [PowerDemand]() dataset records the power demand over one year, the unnormal power demand on special days (e.g. festivals, christmas etc.) are labeled as anomalies.
-SMTP and HTTP are extracted from the [KDDCup99 dataset](http://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html). 
+The model is experimenced with 5 datasets. [PowerDemand](https://github.com/binli826/LSTM-Autoencoders/blob/master/data/power_data.txt) dataset records the power demand over one year, the unnormal power demand on special days (e.g. festivals, christmas etc.) are labeled as anomalies.
+SMTP and HTTP are extracted from the [KDDCup99 dataset](http://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html). SMTP+HTTP is a direct connection of SMTP and HTTP, in order to simulate a concept drift in between.
+[FOREST](https://archive.ics.uci.edu/ml/datasets/covertype) dataset records statistics of 7 different forest cover types. We follow the same setting in [2], take the smallest class Cottonwood/Willow as anomaly.
 
 
 ## Results
@@ -55,3 +56,6 @@ SMTP and HTTP are extracted from the [KDDCup99 dataset](http://kdd.ics.uci.edu/d
 ## Versions
 
 ## Reference
+
+[1]: <https://arxiv.org/pdf/1607.00148.pdf>
+[2]: <https://onlinelibrary.wiley.com/doi/abs/10.1111/coin.12146>
