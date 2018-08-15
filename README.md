@@ -32,9 +32,9 @@ The LSTM-Autoencoder is based on the work of Malhotra et al.[1]. There are two L
 ![LSTM-Autoencoder](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/LSTM-Autoencoder.PNG)
 
 > **Input/Output format**
-> < Batch size, Time steps, Data dimensions > 
->  
-> Batch size: Number of windows contained in a single batch
+>
+> < Batch size, Time steps, Data dimensions > <br />
+> Batch size: Number of windows contained in a single batch<br />
 > Time steps: Number of instances within a window (T)
 > Data dimensions: Size of feature space
 
