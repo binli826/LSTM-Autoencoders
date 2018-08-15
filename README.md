@@ -29,7 +29,7 @@ to fit the latest data property.
 #### LSTM-Autoencoder
 The LSTM-Autoencoder is based on the work of Malhotra et al.[1]. There are two LSTM units, one as encoder and the other one as decoder. Model will only be trained with normal data, so the reconstruction of anomalies is supposed to lead higher reconstruction error.
 
-![LSTM-Autoencoder](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/LSTM-Autoencoder.png)
+![LSTM-Autoencoder](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/LSTM-Autoencoder.PNG)
 
 > **Input/Output format**
 > < Batch size, Time steps, Data dimensions > 
@@ -40,7 +40,7 @@ The LSTM-Autoencoder is based on the work of Malhotra et al.[1]. There are two L
 
 #### Online framework
 Once the LSTM-Autoencoder is initialized with a subset of respective data streams, it is used for the online anomaly detection. For each accumulated batch of streaming data, the model predict each window as normal or anomaly. Afterwards, we introduce experts to label the windows and evaluate the performance. Hard windows will be appended into the updating buffers. Once the normal buffer is full, there will the a continue training of LSTM-Autoencoders only with the hard windows in the buffers.
-![Online framework](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/Online.png)
+![Online framework](https://github.com/binli826/LSTM-Autoencoders/blob/master/Figures/Online.PNG)
 
 
 
