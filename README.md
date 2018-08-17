@@ -77,12 +77,17 @@ With AUC as evaluation metric, we got following performance of the data stream a
 Once datasets avaliable, covert the raw data into uniform format using [dataPreparation.py].
 
 ```sh
-python dataPreparation.py dataset inputpath outputpath --powerlabel --kddcol
+python /src/dataPreparation.py dataset inputpath outputpath --powerlabel --kddcol
 # Example
-python dataPreparation.py kdd /mypath/kddcup.data.corrected /mypath/tosave --kddcol /mypath/columns.txt
+python dataPreparation.py kdd /mypath/kddcup.data.corrected /mypath --kddcol /mypath/columns.txt
 ```
 #### Initialization
-
+With the processed dataset, the model initialization phase can be processed by following command, with figuring out the dataset to use, the data path, and a folder path to save the trained model.
+```sh
+python /src/initialization.py dataset  dataSavePath  modelSavePath
+# Example
+python /src/initialization.py smtp  /mypath/smtp.csv    /mypath/models/
+```
 
 #### Online prediction
 
