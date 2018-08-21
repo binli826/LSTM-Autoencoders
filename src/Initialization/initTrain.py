@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import tensorflow as tf
-from conf import Configuration
+from conf_init import Configuration
 from encdecad import EncDecAD
 from parameterHelper import Parameter_Helper
 

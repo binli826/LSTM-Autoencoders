@@ -77,19 +77,27 @@ With AUC as evaluation metric, we got following performance of the data stream a
 Once datasets avaliable, covert the raw data into uniform format using [dataPreparation.py].
 
 ```sh
-python /src/dataPreparation.py dataset inputpath outputpath --powerlabel --kddcol
+python /src/Initialization/dataPreparation.py dataset inputpath outputpath --powerlabel --kddcol
 # Example
-python dataPreparation.py kdd /mypath/kddcup.data.corrected /mypath --kddcol /mypath/columns.txt
+python /src/Initialization/dataPreparation.py kdd /mypath/kddcup.data.corrected /mypath --kddcol /mypath/columns.txt
 ```
 #### Initialization
 With the processed dataset, the model initialization phase can be processed by following command, with figuring out the dataset to use, the data path, and a folder path to save the trained model.
 ```sh
-python /src/initialization.py dataset  dataSavePath  modelSavePath
+python /src/Initialization/initialization.py dataset  dataSavePath  modelSavePath
 # Example
-python /src/initialization.py smtp  /mypath/smtp.csv    /mypath/models/
+python /src/Initialization/initialization.py smtp  /mypath/smtp.csv    /mypath/models/
 ```
 
 #### Online prediction
+Once data are prepared and model is initializated and saved locally, the online prediction process can be executed as follow,
+```sh
+python /src/OnlinePrediction/OnlinePrediction.py datasetname  dataPath  modelPath
+# Example
+python /src/OnlinePrediction/OnlinePrediction.py  smtp  /mypath/smtp.csv    /mypath/model_smtp/
+```
+#### About hyper-parameters
+Hyper-parameters are leared by grid search with respect to each dataset, and can be modified in [conf_init.py] and [conf_online.py]
 
 
 
@@ -101,4 +109,6 @@ This project works with
 
 [Malhotra et al.]: <https://arxiv.org/pdf/1607.00148.pdf>
 [Dong et al.]: <https://onlinelibrary.wiley.com/doi/abs/10.1111/coin.12146>
-[dataPreparation.py]: <https://github.com/binli826/LSTM-Autoencoders/blob/master/src/dataPreparation.py>
+[dataPreparation.py]: <https://github.com/binli826/LSTM-Autoencoders/blob/master/src/Initialization/dataPreparation.py>
+[conf_init.py]: <https://github.com/binli826/LSTM-Autoencoders/blob/master/src/Initialization/conf_init.py>
+[conf_online.py]: <https://github.com/binli826/LSTM-Autoencoders/blob/master/src/OnlinePrediction/conf_online.py>

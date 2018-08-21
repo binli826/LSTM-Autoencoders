@@ -12,7 +12,7 @@ import tensorflow as tf
 import time
 from sklearn import metrics
 
-from conf import Conf
+from conf_online import Conf
 from ProcessingHelper import processingHelper
 
 
