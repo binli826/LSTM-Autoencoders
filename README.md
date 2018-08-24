@@ -84,7 +84,7 @@ python /src/Initialization/dataPreparation.py kdd /mypath/kddcup.data.corrected 
 #### Initialization
 With the processed dataset, the model initialization phase can be processed by following command, with figuring out the dataset to use, the data path, and a folder path to save the trained model.
 ```sh
-python /src/Initialization/initialization.py dataset  dataSavePath  modelSavePath
+python /src/Initialization/initialization.py dataset  dataPath  modelSavePath
 # Example
 python /src/Initialization/initialization.py smtp  /mypath/smtp.csv    /mypath/models/
 ```

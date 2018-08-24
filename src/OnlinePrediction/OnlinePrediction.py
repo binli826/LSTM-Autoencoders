@@ -30,11 +30,14 @@ def parseArguments():
 
 if __name__  == "__main__":
 
-    args = parseArguments()
-    datasetname = args.__dict__['datasetname']
-    datapath = args.__dict__['dataPath']
-    modelpath_root= args.__dict__['modelPath']
-    
+#    args = parseArguments()
+#    datasetname = args.__dict__['datasetname']
+#    datapath = args.__dict__['dataPath']
+#    modelpath_root= args.__dict__['modelPath']
+    datasetname = "smtp"
+    datapath = "C:/Users/Bin/Desktop/Thesis/codeBearbeitung/originalData/SMTP.csv"
+    modelpath_root= "C:/Users/Bin/Desktop/Thesis/codeBearbeitung/ModelS/"
+
     # get dataset parameters
     conf = Conf(datasetname)
     batch_num = conf.batch_num 
@@ -45,12 +48,12 @@ if __name__  == "__main__":
     
     # load dataset and divede into batches and windows
     names = [str(x) for x in range(elem_num)] +["label"]
-    forest = pd.read_csv(datapath,names=names,skiprows=step_num*init_wins)
+    df = pd.read_csv(datapath,header=None,names=names,skiprows=init_wins)
     
-    batches = forest.shape[0]//step_num//batch_num
+    batches = df.shape[0]//step_num//batch_num
     
-    test_set = forest.iloc[:batches*batch_num*step_num,:-1]
-    labels =forest.iloc[:batches*batch_num*step_num,-1]
+    test_set = df.iloc[:batches*batch_num*step_num,:-1]
+    labels =df.iloc[:batches*batch_num*step_num,-1]
     ts = test_set.as_matrix().reshape(batches,batch_num,step_num,elem_num)
     test_set_list = [ts[a] for a in range(batches)]
     
@@ -205,7 +208,6 @@ if __name__  == "__main__":
                 err_buf = []
                 err_nbuf = []
                 err_abuf = []
-            
             
     fpr, tpr, thresholds = metrics.roc_curve(expert, output, pos_label="anomaly")
     auc = metrics.auc(fpr, tpr)

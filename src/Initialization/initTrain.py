@@ -94,8 +94,10 @@ class Initialization_Train(object):
                 val_loss.append(tl)
                 print('Epoch %d: Loss:%.3f, Val_loss:%.3f' %(i, l,tl))
                 
+                if i == 5:
+                    break
                 #Early stopping
-                if i > 50 and  val_loss[i] < np.array(val_loss[:i]).min():
+                if i > 0 and  val_loss[i] < np.array(val_loss[:i]).min():
                     #save_path = saver.save(sess, conf.modelpath_p)
                     gvars_state = sess.run(gvars)
                     
@@ -104,7 +106,7 @@ class Initialization_Train(object):
                 else:
                     patience_cnt += 1
                 
-                if i>50 and patience_cnt > patience:
+                if i>0 and patience_cnt > patience:
                     print("Early stopping at epoch %d\n"%i)
                     feed_dict = {init_value: val for init_value, val in zip(init_values, gvars_state)}
                     sess.run(assign_ops, feed_dict=feed_dict)
@@ -138,7 +140,7 @@ class Initialization_Train(object):
             
             f = open(conf.log_path,'a')
             f.write("Early stopping at epoch %d\n"%i)
-            f.write("Paras: mu=%.3f,sigma=%.3f,threshold=%.3f\n"%(mu,sigma,threshold))
+#            f.write("mu:\n",mu,"sigma:\n",sigma,"threshold:\n",threshold)
             f.write("Model saved accompany with parameters and threshold in file: %s" % save_path)
             f.write("--- Initialization time: %s seconds ---" % (time.time() - start_time))
             f.close()

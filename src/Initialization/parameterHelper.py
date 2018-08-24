@@ -33,7 +33,7 @@ class Parameter_Helper(object):
             
 
         # new metric
-        err_vec_array = np.array(err_vec_list).reshape(-1,self.conf.step_num,self.conf.elem_num)
+        err_vec_array = np.array(err_vec_list).reshape(-1,self.conf.elem_num)
         
         # for univariate data, anomaly score is squared euclidean distance
         # for multivariate data, anomaly score is squared mahalanobis distance

@@ -68,7 +68,7 @@ class Data_Helper(object):
         windows = [data.iloc[w*self.step_num:(w+1)*self.step_num,:] for w in range(data.index.size//self.step_num)]
         for win in windows:
             label = win.iloc[:,-1]
-            if label[label!="normal"].size == 0:
+            if label[label!="normal."].size == 0:
                 n_list += [i for i in win.index]
             else:
                 a_list += [i for i in win.index]

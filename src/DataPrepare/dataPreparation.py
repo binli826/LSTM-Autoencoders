@@ -45,7 +45,7 @@ def power(pathPowerData, pathPowerLabel, pathPowerSave):
     
     PowerDemand = pd.concat((powerData,powerLabel),axis=1)
     
-    PowerDemand.to_csv(pathPowerSave+"/PowerDemand.csv")
+    PowerDemand.to_csv(pathPowerSave+"/PowerDemand.csv",header=None,index=None)
 
 
 def kdd(pathKDDcol_name, pathKDD, pathKDDSave):
@@ -69,18 +69,13 @@ def kdd(pathKDDcol_name, pathKDD, pathKDDSave):
         col_types.append(col.split(': ')[1])    
     
     
-    df = pd.read_csv(pathKDD,header=None).iloc[:,1:]
-    
+    df = pd.read_csv(pathKDD,header=None)
+
     continuous = df.iloc[:,np.array(pd.Series(col_types)=="continuous")]
-    label = df.iloc[:,-1]
-    label[label=='normal.'] = 'normal'
-    label[label!='normal'] = 'anomaly'
-    continuous = pd.concat((continuous,label),axis=1)
-    
-    SMTP = continuous[continuous.iloc[:,0] == "smtp"].reset_index(drop=True)
-    HTTP = continuous[continuous.iloc[:,0] == "http"].reset_index(drop=True)
+    continuous = pd.concat((continuous,df.iloc[:,-1]),axis=1)
+    SMTP = continuous[df.iloc[:,2] == "smtp"].reset_index(drop=True)
+    HTTP = continuous[df.iloc[:,2] == "http"].reset_index(drop=True)
     SMTPHTTP = pd.concat((SMTP,HTTP),axis=0).reset_index(drop=True)
-    
     
     SMTP.to_csv(pathKDDSave+"/SMTP.csv",header=None,index=None)
     HTTP.to_csv(pathKDDSave+"/HTTP.csv",header=None,index=None)
@@ -99,11 +94,11 @@ def forest(pathForestData,pathForestSave):
     
     forestData = forest.iloc[:,numerical_col]
     forestLabel = forest.iloc[:,-1]
-    forestLabel[forestLabel != 4] = 'normal'
-    forestLabel[forestLabel == 4] = 'anomaly'
+    forestLabel[forestLabel != 4] = 'normal.'
+    forestLabel[forestLabel == 4] = 'anomaly.'
     
     forest = pd.concat((forestData,forestLabel),axis=1)
-    forest.to_csv(pathForestSave+"/FOREST.csv")
+    forest.to_csv(pathForestSave+"/FOREST.csv",header=None,index=None)
 
 
 if __name__ == '__main__':
